@@ -19,5 +19,5 @@ jobs:
         run: pip install -r requirements.txt  # 如果有依赖文件
 
       - name: Run script
-        run: python script/020邮箱下2个表.py
+        run: python script/010清理文件夹.py
 
