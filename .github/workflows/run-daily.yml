@@ -1,4 +1,4 @@
-name: 自动运行Python脚本
+name: 自动执行Python脚本
 
 on:
   schedule:
@@ -18,7 +18,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: 📦 安装依赖
+      - name: 🛠️ 安装系统依赖
+        run: sudo apt-get update && sudo apt-get install -y libffi-dev libssl-dev
+
+      - name: 📦 安装 Python 依赖
         run: |
           pip install -r requirements.txt
 
