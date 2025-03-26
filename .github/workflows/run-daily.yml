@@ -1,0 +1,26 @@
+name: 自动运行Python脚本
+
+on:
+  schedule:
+    - cron: "0 12 * * *"  # UTC 时间 12:00，相当于北京时间 20:00
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  run-scripts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚀 检出仓库代码
+        uses: actions/checkout@v4
+
+      - name: 🐍 设置 Python 运行环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: 📦 安装依赖
+        run: |
+          pip install -r requirements.txt
+
+      - name: ▶️ 运行主程序
+        run: python main.py
