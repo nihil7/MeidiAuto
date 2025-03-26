@@ -14,16 +14,13 @@ import platform
 # 📂 路径配置（支持主程序传参）
 # ================================
 if platform.system() == "Windows":
-    default_save_path = r'C:\Users\ishel\Desktop\meidiauto\github\date\mail'
+    default_save_path = os.path.join(os.getcwd(), "data", "mail")  # Windows 用相对路径
 else:
-    default_save_path = os.path.expanduser("~date/mail")  # Linux/macOS 下的默认路径
+    default_save_path = os.path.expanduser("~/date/mail")  # Linux/macOS
 
-if len(sys.argv) >= 2:
-    excel_save_path = sys.argv[1]
-    print(f"✅ 使用传入路径: {excel_save_path}")
-else:
-    excel_save_path = default_save_path
-    print(f"⚠️ 未传入路径，使用默认路径: {excel_save_path}")
+# 允许主程序传参
+excel_save_path = sys.argv[1] if len(sys.argv) >= 2 else default_save_path
+print(f"📂 保存路径: {excel_save_path}")
 
 # 确保路径存在
 os.makedirs(excel_save_path, exist_ok=True)

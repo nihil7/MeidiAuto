@@ -9,7 +9,7 @@ import platform
 # =======================
 if platform.system() == "Windows":
     # 本地 Windows 运行
-    default_folder = r"C:\Users\ishel\Desktop\meidiauto\github\date\mail"
+    default_folder = os.path.join(os.getcwd(), "data", "mail")  # Windows 用相对路径
 else:
     # GitHub 运行
     default_folder = os.path.join(os.getcwd(), "data", "mail")
