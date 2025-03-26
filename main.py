@@ -1,7 +1,8 @@
 import subprocess
 import os
 
-# 设定公共文件夹路径（在 GitHub Actions 运行环境中使用相对路径）
+# 获取当前脚本的绝对路径，并定位到 scripts 目录
+script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts")
 common_folder = os.path.join(os.getcwd(), "data")
 
 print(f"📁 公共文件路径已设置为: {common_folder}\n")
@@ -25,8 +26,9 @@ subprograms = [
 
 # 依次执行子程序
 for script in subprograms:
+    script_path = os.path.join(script_dir, script)
     print(f"🚀 正在运行 {script} ...")
-    result = subprocess.run(["python", script, common_folder], capture_output=True, text=True)
+    result = subprocess.run(["python", script_path, common_folder], capture_output=True, text=True)
     print(result.stdout)
     if result.stderr:
         print(f"⚠️ {script} 执行出错: {result.stderr}")
