@@ -16,7 +16,7 @@ jobs:
       - name: 🐍 设置 Python 运行环境
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.12'
 
       - name: 📦 安装依赖
         run: |
