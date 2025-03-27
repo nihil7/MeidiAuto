@@ -23,8 +23,31 @@ if not os.path.exists(inventory_folder):
     print(f"❌ 文件夹路径不存在: {inventory_folder}")
     exit()
 
+
+# 获取当前 Python 脚本所在目录
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# 获取 `data` 目录的路径
+data_folder = os.path.join(script_dir, "data")
+
+# 确保 `data` 目录存在
+if not os.path.exists(data_folder):
+    print(f"❌ 数据文件夹不存在: {data_folder}")
+    exit()
+
+# 获取当前脚本所在目录（即 script/ 目录）
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# 获取 `data` 目录的正确路径
+data_folder = os.path.join(script_dir, "data")
+
+# 确保 `data` 目录存在
+if not os.path.exists(data_folder):
+    print(f"❌ 数据文件夹不存在: {data_folder}")
+    exit()
+
 # 设置 '量化需求' 文件路径
-demand_file = os.path.join(os.getcwd(), "data",'list.xlsx')
+demand_file = os.path.join(data_folder, "list.xlsx")
 
 # 确保文件存在
 if not os.path.exists(demand_file):
