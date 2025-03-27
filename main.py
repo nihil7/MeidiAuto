@@ -12,7 +12,6 @@ os.makedirs(common_folder, exist_ok=True)
 
 # 定义要执行的子程序列表
 subprograms = [
-    "010清理文件夹.py",
     "020邮箱下2个表.py",
     "021单纯的合并.py",
     "030家里库存数据整理格式优化千位分隔符自动列宽.py",
