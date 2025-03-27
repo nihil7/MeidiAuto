@@ -12,14 +12,14 @@ os.makedirs(common_folder, exist_ok=True)
 
 # 定义要执行的子程序列表
 subprograms = [
-    "020邮箱下2个表.py",
-    "021单纯的合并.py",
-    "030家里库存数据整理格式优化千位分隔符自动列宽.py",
-    "032外仓库存数据分析.py",
-    "033量化需求插格式优化特殊部分字体缩小.py",
-    "041运算和灰度显示格式优化精准列宽.py",
-    "042比较和彩色显示.py",
-    "051发邮件含图片和附件.py"
+    "020 Email download.py",
+    "021 Merge excel.py",
+    "030 Warehousing at home.py",
+    "032 Warehousing at out.py",
+    "033 list insertion.py",
+    "041 operation.py",
+    "042 Color display.py",
+    "051 Send an email.py"
 ]
 
 # 依次执行子程序
