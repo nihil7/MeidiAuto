@@ -7,7 +7,7 @@ from openpyxl.styles import Font
 # ================================
 # 📂 文件路径配置（支持主程序传参）
 # ================================
-default_inventory_folder = os.path.abspath(os.path.join(os.getcwd(), "data", "mail"))
+default_inventory_folder = os.path.abspath(os.path.join(os.getcwd(), "data"))
 
 inventory_folder = sys.argv[1] if len(sys.argv) >= 2 else default_inventory_folder
 print(f"📂 使用路径: {inventory_folder}")

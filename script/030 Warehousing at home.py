@@ -10,7 +10,7 @@ from openpyxl.styles import NamedStyle
 # ================================
 # 📂 路径配置（支持主程序传参）
 # ================================
-default_folder_path = os.path.join(os.getcwd(), "data", "mail")  # GitHub 使用相对路径
+default_folder_path = os.path.join(os.getcwd(), "data")  # GitHub 使用相对路径
 
 if len(sys.argv) >= 2:
     folder_path = sys.argv[1]
