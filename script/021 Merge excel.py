@@ -16,7 +16,7 @@ else:
 
 # 获取路径（本地或传参）
 if len(sys.argv) >= 2:
-    folder_path = os.path.join(sys.argv[1], "mail")  # 传入路径
+    folder_path = os.path.join(sys.argv[1])  # 传入路径
     print(f"✅ 使用传入路径: {folder_path}")
 else:
     folder_path = default_folder_path  # 本地默认路径
