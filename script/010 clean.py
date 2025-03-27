@@ -1,65 +1,22 @@
 import os
-import shutil
-import sys
-from datetime import datetime
-import platform
 
-# =======================
-# 设定默认路径
-# =======================
-if platform.system() == "Windows":
-    # 本地 Windows 运行
-    default_folder = os.path.join(os.getcwd(), "data", "mail")  # Windows 用相对路径
-else:
-    # GitHub 运行
-    default_folder = os.path.join(os.getcwd(), "data", "mail")
+# 获取当前脚本所在目录
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# =======================
-# 获取路径（本地 or 传参）
-# =======================
-if len(sys.argv) >= 2:
-    source_folder = os.path.join(sys.argv[1], "mail")  # GitHub 传参路径
-    print(f"✅ 已接收外部传入路径: {source_folder}")
-else:
-    source_folder = default_folder  # 本地默认路径
-    print(f"⚠️ 未传入路径，使用默认路径: {source_folder}")
+# 要删除的文件名中包含的关键字
+keywords = ["总库存", "美的仓储自动化", "合肥市","存量查询"]
 
-# 验证路径是否存在
-if not os.path.exists(source_folder):
-    print(f"❌ 错误：路径不存在！ {source_folder}")
-    sys.exit(1)
+# 遍历目录及其子目录中的所有文件
+for root, dirs, files in os.walk(script_dir):
+    for filename in files:
+        file_path = os.path.join(root, filename)
 
-# =======================
-# 目标文件夹路径（存放重命名后的文件）
-# =======================
-target_folder = os.path.join(source_folder, "re")
-os.makedirs(target_folder, exist_ok=True)  # 确保目标文件夹存在
-print(f"📁 目标文件夹已准备: {target_folder}")
+        # 检查文件名是否包含任意关键字
+        if any(keyword in filename for keyword in keywords):
+            try:
+                os.remove(file_path)
+                print(f"✅ 删除文件: {file_path}")
+            except Exception as e:
+                print(f"❌ 删除文件 {file_path} 失败: {e}")
 
-# =======================
-# 遍历并移动文件
-# =======================
-file_count = 0
-for filename in os.listdir(source_folder):
-    file_path = os.path.join(source_folder, filename)
-
-    # 只处理文件，忽略子文件夹
-    if os.path.isfile(file_path):
-        # 获取文件的修改时间
-        mod_time = datetime.fromtimestamp(os.path.getmtime(file_path))
-        time_prefix = mod_time.strftime('%Y%m%d_%H%M%S')
-
-        # 生成新文件名
-        new_filename = f"{time_prefix}_{filename}"
-        new_file_path = os.path.join(target_folder, new_filename)
-
-        # 移动文件
-        shutil.move(file_path, new_file_path)
-
-        print(f"✅ 已移动并重命名: {filename} → {new_filename}")
-        file_count += 1
-
-# =======================
-# 完成提示
-# =======================
-print(f"\n🎉 处理完成！共 {file_count} 个文件已移动到: {target_folder}")
+print("\n处理完成！")
