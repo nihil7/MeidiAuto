@@ -57,7 +57,7 @@ from_email = '1195299529@qq.com'
 from_password = 'ewplziznyopsjbae'
 
 # 多个收件人的邮箱，使用逗号分隔
-to_email_list = ['', '1130108075@qq.com']
+to_email_list = ['zhou345616422@163.com', '1130108075@qq.com']
 
 # 将收件人邮箱列表转换为逗号分隔的字符串
 to_email = ', '.join(to_email_list)
