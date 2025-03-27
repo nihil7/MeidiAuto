@@ -14,9 +14,9 @@ import platform
 # 📂 路径配置（支持主程序传参）
 # ================================
 if platform.system() == "Windows":
-    default_save_path = os.path.join(os.getcwd(), "data", "mail")  # Windows 用相对路径
+    default_save_path = os.path.join(os.getcwd(), "data",)  # Windows 用相对路径
 else:
-    default_save_path = os.path.expanduser("~/date/mail")  # Linux/macOS
+    default_save_path = os.path.expanduser("~/date")  # Linux/macOS
 
 # 允许主程序传参
 excel_save_path = sys.argv[1] if len(sys.argv) >= 2 else default_save_path
