@@ -2,7 +2,7 @@ name: 自动执行Python脚本
 
 on:
   schedule:
-    - cron: "0 12 * * *"  # UTC 时间 12:00，相当于北京时间 20:00
+    - cron: "30 9 * * *"  # "0 10 * * *"  # UTC 时间 12:00，相当于北京时间 20:00，"30 9 * * *"  # UTC 09:30 -> 北京时间 17:30
   workflow_dispatch:  # 允许手动触发
 
 jobs:
