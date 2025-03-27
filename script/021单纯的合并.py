@@ -3,24 +3,29 @@ import sys
 import shutil
 from datetime import datetime
 from openpyxl import load_workbook
+import platform
 
 # ================================
 # 📂 路径配置（支持主程序传参）
 # ================================
-default_folder_path = r'C:\Users\ishel\Desktop\当日库存情况'
+# 设定默认路径（根据操作系统调整路径）
+if platform.system() == "Windows":
+    default_folder_path = os.path.join(os.getcwd(), "data", "mail")  # 本地 Windows 用相对路径
+else:
+    default_folder_path = os.path.join(os.getcwd(), "data", "mail")  # GitHub 使用相对路径
 
+# 获取路径（本地或传参）
 if len(sys.argv) >= 2:
-    folder_path = sys.argv[1]
+    folder_path = os.path.join(sys.argv[1], "mail")  # 传入路径
     print(f"✅ 使用传入路径: {folder_path}")
 else:
-    folder_path = default_folder_path
+    folder_path = default_folder_path  # 本地默认路径
     print(f"⚠️ 未传入路径，使用默认路径: {folder_path}")
 
 # 确保路径存在
 if not os.path.exists(folder_path):
     print(f"❌ 文件夹路径不存在: {folder_path}")
     sys.exit(1)
-
 
 # === 查找目录下所有Excel文件，找到第一个包含"合肥市"的文件 ===
 excel_files = [f for f in os.listdir(folder_path) if f.endswith('.xlsx') and "合肥市" in f]
