@@ -2,7 +2,7 @@ import subprocess
 import os
 
 # 获取当前脚本的绝对路径，并定位到 scripts 目录
-script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts")
+script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "script")
 common_folder = os.path.join(os.getcwd(), "data")
 
 print(f"📁 公共文件路径已设置为: {common_folder}\n")
