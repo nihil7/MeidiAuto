@@ -8,7 +8,7 @@ import sys
 # 1. 文件路径配置（支持传参）
 # ================================
 # 默认路径
-default_inventory_folder = os.path.join(os.getcwd(), "data", "mail")  # GitHub 使用相对路径
+default_inventory_folder = os.path.join(os.getcwd(), "data")  # GitHub 使用相对路径
 
 # 判断是否传入路径
 if len(sys.argv) >= 2:

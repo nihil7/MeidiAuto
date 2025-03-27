@@ -11,7 +11,7 @@ from datetime import datetime
 # ================================
 # 文件路径配置
 # ================================
-default_inventory_folder = os.path.abspath(os.path.join(os.getcwd(), "data", "mail"))
+default_inventory_folder = os.path.abspath(os.path.join(os.getcwd(), "data"))
 
 if len(sys.argv) >= 2:
     inventory_folder = sys.argv[1]

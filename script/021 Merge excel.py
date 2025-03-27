@@ -10,9 +10,9 @@ import platform
 # ================================
 # 设定默认路径（根据操作系统调整路径）
 if platform.system() == "Windows":
-    default_folder_path = os.path.join(os.getcwd(), "data", "mail")  # 本地 Windows 用相对路径
+    default_folder_path = os.path.join(os.getcwd(), "data")  # 本地 Windows 用相对路径
 else:
-    default_folder_path = os.path.join(os.getcwd(), "data", "mail")  # GitHub 使用相对路径
+    default_folder_path = os.path.join(os.getcwd(), "data")  # GitHub 使用相对路径
 
 # 获取路径（本地或传参）
 if len(sys.argv) >= 2:

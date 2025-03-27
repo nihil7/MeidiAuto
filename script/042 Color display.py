@@ -9,7 +9,7 @@ from openpyxl.styles import PatternFill
 # 📂 文件路径配置（支持主程序传参）
 # ================================
 
-default_inventory_folder = os.path.abspath(os.path.join(os.getcwd(), "data", "mail"))
+default_inventory_folder = os.path.abspath(os.path.join(os.getcwd(), "data"))
 
 # 支持外部传参路径（来自主程序）
 if len(sys.argv) >= 2:

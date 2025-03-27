@@ -8,7 +8,7 @@ from collections import defaultdict
 # 📂 文件路径配置（GitHub Actions 兼容）
 # ================================
 # GitHub Actions 使用工作目录：GITHUB_WORKSPACE
-default_inventory_folder = os.path.join(os.getenv("GITHUB_WORKSPACE", os.getcwd()), "data", "mail")
+default_inventory_folder = os.path.join(os.getenv("GITHUB_WORKSPACE", os.getcwd()), "data")
 
 # 通过 sys.argv 传递路径参数
 inventory_folder = sys.argv[1] if len(sys.argv) >= 2 else default_inventory_folder
