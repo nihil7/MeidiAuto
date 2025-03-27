@@ -11,7 +11,7 @@ from datetime import datetime
 # ================================
 # 文件路径配置
 # ================================
-default_inventory_folder = r'C:\Users\ishel\Desktop\当日库存情况'
+default_inventory_folder = os.path.abspath(os.path.join(os.getcwd(), "data", "mail"))
 
 if len(sys.argv) >= 2:
     inventory_folder = sys.argv[1]
@@ -30,12 +30,12 @@ if not os.path.exists(inventory_folder):
 image_pattern = os.path.join(inventory_folder, '*美的*.png')
 image_files = glob.glob(image_pattern)
 
+latest_image = None
 if image_files:
     latest_image = max(image_files, key=os.path.getctime)
     print(f"✅ 找到最新的图片：{latest_image}")
 else:
     print("❌ 没有找到符合条件的图片！")
-    exit()
 
 # ================================
 # 找到最新Excel（总库存）
@@ -49,6 +49,7 @@ if excel_files:
 else:
     print("❌ 没有找到符合条件的Excel文件！")
     exit()
+
 # ================================
 # 邮件配置
 # ================================
@@ -61,12 +62,12 @@ to_email_list = ['', '1130108075@qq.com']
 # 将收件人邮箱列表转换为逗号分隔的字符串
 to_email = ', '.join(to_email_list)
 
-subject = f"图片和Excel文件 - {os.path.basename(latest_image)}"
+subject = f"图片和Excel文件 - {os.path.basename(latest_image) if latest_image else '无图片'}"
 body = f"""您好，
 
 这是最新的图片和Excel文件：
 
-图片文件: {os.path.basename(latest_image)}
+图片文件: {os.path.basename(latest_image) if latest_image else '无图片'}
 Excel文件: {os.path.basename(latest_excel)}
 
 祝您工作顺利！
@@ -82,15 +83,16 @@ msg['Subject'] = subject
 msg.attach(MIMEText(body, 'plain'))
 
 # ================================
-# 添加图片附件 (使用 MIMEImage)
+# 添加图片附件 (如果有图片的话)
 # ================================
-with open(latest_image, 'rb') as img_file:
-    img_data = img_file.read()
-    img = MIMEImage(img_data, name=os.path.basename(latest_image))
-    msg.attach(img)
+if latest_image:
+    with open(latest_image, 'rb') as img_file:
+        img_data = img_file.read()
+        img = MIMEImage(img_data, name=os.path.basename(latest_image))
+        msg.attach(img)
 
 # ================================
-# 添加 Excel 附件 (使用 MIMEApplication)
+# 添加 Excel 附件
 # ================================
 with open(latest_excel, 'rb') as excel_file:
     excel_data = excel_file.read()
