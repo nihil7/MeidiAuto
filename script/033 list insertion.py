@@ -135,11 +135,11 @@ for row in sheet_inventory.iter_rows(min_row=4, max_row=51, min_col=6, max_col=1
 
 for row in sheet_inventory.iter_rows(min_row=4, max_row=100, min_col=11, max_col=11):
     for cell in row:
-        cell.font = Font(size=6)
+        cell.font = Font(size=8)
 
 for row in sheet_inventory.iter_rows(min_row=4, max_row=100, min_col=14, max_col=14):
     for cell in row:
-        cell.font = Font(size=6)
+        cell.font = Font(size=8)
 
 # ================================
 # 8. 合并单元格R3:T3并写入“不合格”
