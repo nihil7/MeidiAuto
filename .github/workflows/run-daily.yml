@@ -1,9 +1,10 @@
 name: 自动执行Python脚本
 
+# ✅ 两种触发方式：定时 + 手动/API触发
 on:
   schedule:
-    - cron: "0 11 * * *"  # UTC 时间 11:00，相当于北京时间 19:00
-  workflow_dispatch:  # 允许手动触发
+    - cron: "0 11 * * *"  # 每天 UTC 时间 11:00（即北京时间 19:00）
+  workflow_dispatch:       # 支持通过 GitHub UI 或 API 手动触发
 
 jobs:
   run-scripts:
@@ -18,12 +19,20 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: 🛠️ 安装系统依赖
-        run: sudo apt-get update && sudo apt-get install -y libffi-dev libssl-dev
-
-      - name: 📦 安装 Python 依赖
+      - name: 🛠️ 安装系统依赖（可选）
         run: |
+          sudo apt-get update
+          sudo apt-get install -y libffi-dev libssl-dev
+
+      - name: 📦 安装 Python 依赖（通过 requirements.txt）
+        run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: ▶️ 运行主程序
-        run: python main.py
+        run: |
+          python main.py
+
+      - name: ✅ 输出完成提示（可选）
+        run: echo "任务执行完成 ✅"
+
