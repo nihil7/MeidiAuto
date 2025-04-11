@@ -35,7 +35,9 @@ jobs:
       - name: ▶️ 运行主程序
         run: |
           python main.py
+        env:
+          EMAIL_ADDRESS_QQ: ${{ secrets.EMAIL_ADDRESS_QQ }}
+          EMAIL_PASSWOR_QQ: ${{ secrets.EMAIL_PASSWOR_QQ }}
 
       - name: ✅ 输出完成提示（可选）
         run: echo "任务执行完成 ✅"
-
