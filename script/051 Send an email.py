@@ -7,6 +7,7 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.image import MIMEImage
 from datetime import datetime
+from dotenv import load_dotenv
 
 # ================================
 # 文件路径配置
@@ -53,11 +54,22 @@ else:
 # ================================
 # 邮件配置
 # ================================
-from_email = '1195299529@qq.com'
-from_password = 'ewplziznyopsjbae'
+
+# 加载 .env 文件中的变量
+load_dotenv()
+
+# 从环境变量中读取邮箱和授权码
+email_user = os.getenv("EMAIL_ADDRESS_QQ")
+email_password = os.getenv("EMAIL_PASSWOR_QQ")  # 注意变量名拼写！
+
+if not email_user or not email_password:
+    raise ValueError("❌ 环境变量未正确配置，无法获取邮箱账户或密码！")
+
+# 以下是你原本的逻辑
+print("📬 正在使用邮箱:", email_user)
 
 # 多个收件人的邮箱，使用逗号分隔
-to_email_list = ['ishell@aliyun.com','1421281576@qq.com','zhou345616422@163.com','1130108075@qq.com']
+to_email_list = ['ishell@aliyun.com']
 
 # 将收件人邮箱列表转换为逗号分隔的字符串
 to_email = ', '.join(to_email_list)
@@ -77,7 +89,7 @@ Excel文件: {os.path.basename(latest_excel)}
 # 构建邮件
 # ================================
 msg = MIMEMultipart()
-msg['From'] = from_email
+msg['From'] = email_user
 msg['To'] = to_email
 msg['Subject'] = subject
 msg.attach(MIMEText(body, 'plain'))
@@ -110,7 +122,7 @@ with open(latest_excel, 'rb') as excel_file:
 try:
     server = smtplib.SMTP('smtp.qq.com', 587)
     server.starttls()
-    server.login(from_email, from_password)
+    server.login(email_user, email_password)
     server.send_message(msg)
     server.quit()
     print("✅ 邮件发送成功！")

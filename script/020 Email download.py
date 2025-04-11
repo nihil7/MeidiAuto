@@ -1,14 +1,15 @@
-
-from bs4 import BeautifulSoup
-import pandas as pd
-import sys
-import re
-import openpyxl
-from openpyxl.styles import Alignment
-import time
 import os
-from email.header import decode_header
 import platform
+import re
+import sys
+import time
+from email.header import decode_header
+
+import openpyxl
+import pandas as pd
+from bs4 import BeautifulSoup
+from openpyxl.styles import Alignment
+from dotenv import load_dotenv
 
 # ================================
 # 📂 路径配置（支持主程序传参）
@@ -26,12 +27,25 @@ print(f"📂 保存路径: {excel_save_path}")
 os.makedirs(excel_save_path, exist_ok=True)
 
 
+
+
 # ================================
 # 邮箱配置（保密信息建议放配置文件）
 # ================================
+# 加载 .env 文件中的变量
+load_dotenv()
+
+# 从环境变量中读取邮箱和授权码
+email_user = os.getenv("EMAIL_ADDRESS_QQ")
+email_password = os.getenv("EMAIL_PASSWOR_QQ")  # 注意变量名拼写！
+
+if not email_user or not email_password:
+    raise ValueError("❌ 环境变量未正确配置，无法获取邮箱账户或密码！")
+
+# 以下是你原本的逻辑
+print("📬 正在使用邮箱:", email_user)
+
 email_server = 'imap.qq.com'
-email_user = '1195299529@qq.com'  # ⚠️ 改为你的邮箱
-email_password = 'ewplziznyopsjbae'  # ⚠️ 改为你的授权码
 
 
 # ================================
