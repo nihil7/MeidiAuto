@@ -84,7 +84,7 @@ def fetch_html_from_emails(server, user, password):
 
         mail.select('inbox')
 
-        print("正在检索最近6封邮件...")
+        print("正在检索最近15封邮件...")
         status, messages = mail.search(None, 'ALL')
         if status != 'OK':
             print("未找到邮件")
@@ -93,12 +93,12 @@ def fetch_html_from_emails(server, user, password):
         mail_ids = messages[0].split()
         recent_mail_ids = mail_ids[-15:]
 
-        print(f"共找到 {len(mail_ids)} 封邮件，正在处理最近6封邮件。")
+        print(f"共找到 {len(mail_ids)} 封邮件，正在处理最近15封邮件。")
 
         html_content = None
         inventory_query_emails = []
 
-        # 遍历最近的6封邮件
+        # 遍历最近的15封邮件
         for i, mail_id in enumerate(recent_mail_ids):
             status, msg_data = mail.fetch(mail_id, '(RFC822)')
             if status != 'OK':
