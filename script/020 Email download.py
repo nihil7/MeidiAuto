@@ -91,7 +91,7 @@ def fetch_html_from_emails(server, user, password):
             return None
 
         mail_ids = messages[0].split()
-        recent_mail_ids = mail_ids[-6:]
+        recent_mail_ids = mail_ids[-15:]
 
         print(f"共找到 {len(mail_ids)} 封邮件，正在处理最近6封邮件。")
 
