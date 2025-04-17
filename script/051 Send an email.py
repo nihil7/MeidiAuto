@@ -6,7 +6,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.image import MIMEImage
-from datetime import datetime
 from dotenv import load_dotenv
 
 # ================================
@@ -51,6 +50,28 @@ else:
     print("❌ 没有找到符合条件的Excel文件！")
     exit()
 
+
+# ================================
+# 查找最新的 HTML 文件
+# ================================
+html_pattern = os.path.join(inventory_folder, 'output.html')  # 假设 HTML 文件名为 output.html
+html_files = glob.glob(html_pattern)
+
+html_content = None
+if html_files:
+    latest_html = max(html_files, key=os.path.getctime)  # 获取最新的 HTML 文件
+    print(f"✅ 找到最新的 HTML 文件：{latest_html}")
+    # 读取 HTML 文件内容
+    with open(latest_html, 'r', encoding='utf-8') as file:
+        html_content = file.read()
+else:
+    print("❌ 没有找到符合条件的 HTML 文件！")
+    exit()
+
+# 读取 HTML 内容
+print(f"✅ 已成功读取 HTML 文件内容")
+
+
 # ================================
 # 邮件配置
 # ================================
@@ -68,41 +89,31 @@ if not email_user or not email_password:
 print("📬 正在使用邮箱:", email_user)
 
 # 多个收件人的邮箱，使用逗号分隔
-to_email_list = ['ishell@aliyun.com','1130108075@qq.com']
+to_email_list = ['ishell@aliyun.com', '1130108075@qq.com']
 
 # 将收件人邮箱列表转换为逗号分隔的字符串
 to_email = ', '.join(to_email_list)
 
-subject = f"缺料情况和Excel文件 - {os.path.basename(latest_image) if latest_image else '无图片  '}"
+subject = f"物料情况和Excel文件 - {os.path.basename(latest_image) if latest_image else '无图片  '}"
 
-# ================================
-# 读取 HTML 内容
-# ================================
-def load_html_content(file_path):
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            return file.read()
-    except Exception as e:
-        print(f"❌ 无法读取 HTML 文件：{e}")
-        return ""
 
-# 读取保存的 HTML 内容
-html_file_path = "output.html"
-html_content = load_html_content(html_file_path)
 
-body = f"""您好，
+body = f"""
+<html>
+    <body>
+        <p>您好，</p>
 
-这是最新的缺料情况和Excel文件：
+        <p>这是最新的物料情况和Excel文件：</p>
 
-图片文件: {os.path.basename(latest_image) if latest_image else '无图片'}
-Excel文件: {os.path.basename(latest_excel)}
+        <p>图片文件: {os.path.basename(latest_image) if latest_image else '无图片'}<br>
+        Excel文件: {os.path.basename(latest_excel)}</p>
 
-{html_content}  <!-- 在这里插入生成的 HTML 内容 -->
+        <p>{html_content}</p>  <!-- 在这里插入生成的 HTML 内容 -->
 
-\n  <!-- 添加一个换行符 -->
-祝您工作顺利！
+        <p>祝您工作顺利！</p>
+    </body>
+</html>
 """
-
 
 # ================================
 # 构建邮件

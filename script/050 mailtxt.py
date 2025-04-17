@@ -179,7 +179,7 @@ def construct_html_content(sheet, colored_rows, date, stock_total, monthly_sent,
     # 开头段落
     html += f"""
     <h1>{date} 重庆俊都仓储数据</h1>
-    <h3>“外仓库存＜50%外仓应存数量”的物料有 <strong>{len(colored_rows)}</strong> 款：</h3>
+    <h4>“外仓库存＜50%外仓应存数量”的物料有 <strong>{len(colored_rows)}</strong> 款：</h4>
     """
 
     # 表1：异常库存明细
@@ -215,7 +215,8 @@ def construct_html_content(sheet, colored_rows, date, stock_total, monthly_sent,
 
     # 表2：汇总信息
     html += """
-    <h3>汇总信息</h3>
+    <br>  <!-- 添加一个空行 -->
+    <h4>汇总信息</h4>
     <table>
         <tr>
             <th>项目</th>

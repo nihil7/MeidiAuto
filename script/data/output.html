@@ -1,0 +1,75 @@
+
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            table { 
+                border-collapse: collapse; 
+                width: auto; /* 自适应宽度 */
+                margin-top: 10px; 
+            }
+            th, td { 
+                border: 1px solid #999; 
+                padding: 6px 10px; /* 调整内边距，使表格更紧凑 */
+            }
+            th { 
+                background-color: #f2f2f2; 
+                text-align: left; /* 标题靠左 */
+            }
+            td.right { 
+                text-align: right; 
+            }
+            td.left { 
+                text-align: left; 
+            }
+        </style>
+    </head>
+    <body>
+    
+    <h1>2025年04月17日 重庆俊都仓储数据</h1>
+    <h4>“外仓库存＜50%外仓应存数量”的物料有 <strong>1</strong> 款：</h4>
+    
+    <table>
+        <tr>
+            <th>编号</th>
+            <th>库存</th>
+            <th>外应存</th>
+            <th>家里库存</th>  <!-- 新增家里库存列 -->
+        </tr>
+    
+        <tr>
+            <td>5468</td>
+            <td class="right">175.0</td>
+            <td class="right">500.0</td>
+            <td class="right">1,140.0</td>  <!-- 显示家里库存 -->
+        </tr>
+        </table>
+    <br>  <!-- 添加一个空行 -->
+    <h4>汇总信息</h4>
+    <table>
+        <tr>
+            <th>项目</th>
+            <th>数值</th>
+        </tr>
+    
+        <tr>
+            <td class="left">外仓库存总量</td>
+            <td class="right">48,900.0</td>
+        </tr>
+        
+        <tr>
+            <td class="left">月已发总量</td>
+            <td class="right">86,550.0</td>
+        </tr>
+        
+        <tr>
+            <td class="left">月计划</td>
+            <td class="right">184,000.0</td>
+        </tr>
+        
+        <tr>
+            <td class="left">月预估还有要发货</td>
+            <td class="right">97,450.0</td>
+        </tr>
+        </table>
+</body></html>
