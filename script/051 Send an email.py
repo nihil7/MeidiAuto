@@ -89,7 +89,7 @@ if not email_user or not email_password:
 print("📬 正在使用邮箱:", email_user)
 
 # 多个收件人的邮箱，使用逗号分隔
-to_email_list = ['ishell@aliyun.com', '1130108075@qq.com']
+to_email_list = ['ishell@aliyun.com', '1130108075@qq.com','1421281576@qq.com','zhou345616422@163.com']
 
 # 将收件人邮箱列表转换为逗号分隔的字符串
 to_email = ', '.join(to_email_list)
@@ -103,14 +103,14 @@ body = f"""
     <body>
         <p>您好，</p>
 
-        <p>这是最新的物料情况和Excel文件：</p>
-
-        <p>图片文件: {os.path.basename(latest_image) if latest_image else '无图片'}<br>
-        Excel文件: {os.path.basename(latest_excel)}</p>
-
         <p>{html_content}</p>  <!-- 在这里插入生成的 HTML 内容 -->
 
         <p>祝您工作顺利！</p>
+        
+        <p>附件：<br>
+        图片文件: {os.path.basename(latest_image) if latest_image else '无图片'}<br>
+        Excel文件: {os.path.basename(latest_excel)}</p>
+
     </body>
 </html>
 """
