@@ -54,7 +54,6 @@ else:
 # ================================
 # 邮件配置
 # ================================
-
 # 加载 .env 文件中的变量
 load_dotenv()
 
@@ -69,21 +68,41 @@ if not email_user or not email_password:
 print("📬 正在使用邮箱:", email_user)
 
 # 多个收件人的邮箱，使用逗号分隔
-to_email_list = ['ishell@aliyun.com','1421281576@qq.com','zhou345616422@163.com','1130108075@qq.com']
+to_email_list = ['ishell@aliyun.com','1130108075@qq.com']
 
 # 将收件人邮箱列表转换为逗号分隔的字符串
 to_email = ', '.join(to_email_list)
 
-subject = f"图片和Excel文件 - {os.path.basename(latest_image) if latest_image else '无图片'}"
+subject = f"缺料情况和Excel文件 - {os.path.basename(latest_image) if latest_image else '无图片  '}"
+
+# ================================
+# 读取 HTML 内容
+# ================================
+def load_html_content(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return file.read()
+    except Exception as e:
+        print(f"❌ 无法读取 HTML 文件：{e}")
+        return ""
+
+# 读取保存的 HTML 内容
+html_file_path = "output.html"
+html_content = load_html_content(html_file_path)
+
 body = f"""您好，
 
-这是最新的图片和Excel文件：
+这是最新的缺料情况和Excel文件：
 
 图片文件: {os.path.basename(latest_image) if latest_image else '无图片'}
 Excel文件: {os.path.basename(latest_excel)}
 
+{html_content}  <!-- 在这里插入生成的 HTML 内容 -->
+
+\n  <!-- 添加一个换行符 -->
 祝您工作顺利！
 """
+
 
 # ================================
 # 构建邮件
@@ -92,7 +111,7 @@ msg = MIMEMultipart()
 msg['From'] = email_user
 msg['To'] = to_email
 msg['Subject'] = subject
-msg.attach(MIMEText(body, 'plain'))
+msg.attach(MIMEText(body, 'html'))  # 设置邮件正文为 HTML 格式
 
 # ================================
 # 添加图片附件 (如果有图片的话)
