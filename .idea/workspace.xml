@@ -6,9 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8f0b6721-c018-412c-ad77-c58279931e3c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/050 mailtxt.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/050 mailtxt.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/script/051 Send an email.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/051 Send an email.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/data/output.html" beforeDir="false" afterPath="$PROJECT_DIR$/script/data/output.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,12 +32,12 @@
   <component name="GitLabMergeRequestsSettings">{
   &quot;editorReviewEnabled&quot;: false
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/nihil7/MeidiAuto.git",
-    "accountId": "37f316d5-0357-4c3e-8d76-c90b758dedb1"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/nihil7/MeidiAuto.git&quot;,
+    &quot;accountId&quot;: &quot;37f316d5-0357-4c3e-8d76-c90b758dedb1&quot;
   }
-}]]></component>
+}</component>
   <component name="GitlabMajeraCodeReviewSettings">
     <option name="popularEmojiShortcuts">
       <list />
@@ -55,36 +53,36 @@
     <option name="sortByType" value="true" />
     <option name="sortKey" value="BY_TYPE" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.010 clean.executor": "Run",
-    "Python.020 Email download.executor": "Run",
-    "Python.021 Merge excel.executor": "Run",
-    "Python.030 Warehousing at home.executor": "Run",
-    "Python.032 Warehousing at out.executor": "Run",
-    "Python.033 list insertion.executor": "Run",
-    "Python.041 operation.executor": "Run",
-    "Python.042 Color display.executor": "Run",
-    "Python.050 mailtxt.executor": "Run",
-    "Python.051 Send an email.executor": "Run",
-    "Python.chek.executor": "Run",
-    "Python.main local.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.sync_env_to_github.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/ishel/Desktop/编程总库/PtSign",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.010 clean.executor&quot;: &quot;Run&quot;,
+    &quot;Python.020 Email download.executor&quot;: &quot;Run&quot;,
+    &quot;Python.021 Merge excel.executor&quot;: &quot;Run&quot;,
+    &quot;Python.030 Warehousing at home.executor&quot;: &quot;Run&quot;,
+    &quot;Python.032 Warehousing at out.executor&quot;: &quot;Run&quot;,
+    &quot;Python.033 list insertion.executor&quot;: &quot;Run&quot;,
+    &quot;Python.041 operation.executor&quot;: &quot;Run&quot;,
+    &quot;Python.042 Color display.executor&quot;: &quot;Run&quot;,
+    &quot;Python.050 mailtxt.executor&quot;: &quot;Run&quot;,
+    &quot;Python.051 Send an email.executor&quot;: &quot;Run&quot;,
+    &quot;Python.chek.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main local.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.sync_env_to_github.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ishel/Desktop/编程总库/PtSign&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
-  <component name="RunManager" selected="Python.050 mailtxt">
+}</component>
+  <component name="RunManager" selected="Python.010 clean">
     <configuration name="010 clean" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="MeidiAuto" />
       <option name="ENV_FILES" value="" />
@@ -197,10 +195,10 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.050 mailtxt" />
-        <item itemvalue="Python.051 Send an email" />
-        <item itemvalue="Python.main local" />
         <item itemvalue="Python.010 clean" />
+        <item itemvalue="Python.051 Send an email" />
+        <item itemvalue="Python.050 mailtxt" />
+        <item itemvalue="Python.main local" />
         <item itemvalue="Python.042 Color display" />
       </list>
     </recent_temporary>
