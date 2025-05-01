@@ -89,7 +89,7 @@ if not email_user or not email_password:
 print("📬 正在使用邮箱:", email_user)
 
 # 多个收件人的邮箱，使用逗号分隔
-to_email_list = [ '1130108075@qq.com'] #'ishell@aliyun.com','1421281576@qq.com','zhou345616422@163.com'
+to_email_list = [ '1130108075@qq.com','ishell@aliyun.com','1421281576@qq.com','zhou345616422@163.com'] #
 
 # 将收件人邮箱列表转换为逗号分隔的字符串git remote set-url origin git@github.com:nihil7/
 to_email = ', '.join(to_email_list)
