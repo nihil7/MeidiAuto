@@ -97,7 +97,6 @@ to_email = ', '.join(to_email_list)
 subject = f"物料情况和Excel文件 - {os.path.basename(latest_image) if latest_image else '无图片  '}"
 
 
-
 body = f"""
 <html>
     <body>
