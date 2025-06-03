@@ -58,40 +58,59 @@ sheet = wb_inventory['库存表']  # 假设工作表名为 '库存表'
 # ================================
 # 3. 数据处理与填充颜色
 # ================================
+from openpyxl.styles import PatternFill
+
 def process_inventory_data(sheet):
-    purple_fill = PatternFill(start_color="3F0065", end_color="3F0065", fill_type="solid")
-    red_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-    green_fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type="solid")
+    # 主颜色填充定义
+    purple_fill = PatternFill(start_color="3F0065", end_color="3F0065", fill_type="solid")  # 深紫
+    red_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")     # 红色
+    green_fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type="solid")   # 绿色
 
-    for row in sheet.iter_rows(min_row=2, max_col=12, values_only=False):  # 假设从第二行开始处理数据
-        column_10 = row[9]  # 第10列（索引9）
-        column_12 = row[11]  # 第12列（索引11）)
+    # 扩展颜色（用于同行其他单元格）
+    purple_row_fill = PatternFill(start_color="CCC0DA", end_color="CCC0DA", fill_type="solid")  # 淡紫
+    red_row_fill = PatternFill(start_color="E6B8B7", end_color="E6B8B7", fill_type="solid")      # 淡红
 
-        # 尝试将字符串转换为数字，如果失败则忽略
+    # 遍历所有行（跳过表头）
+    for row in sheet.iter_rows(min_row=2, max_col=12, values_only=False):
+        column_10 = row[9]   # 第10列（索引9）
+        column_12 = row[11]  # 第12列（索引11）
+
+        # 安全转换数值
         try:
             n = float(column_12.value) if column_12.value is not None else 0
         except ValueError:
-            n = 0  # 如果转换失败，将n设为0
-
+            n = 0
         try:
             m = float(column_10.value) if column_10.value is not None else 0
         except ValueError:
-            m = 0  # 如果转换失败，将m设为0
+            m = 0
 
-        if n > 0:  # 仅当第12列大于0时进行比较
-            # m=0 且 n > 0 或 m < 0 且 n > 0 时填充紫色
+        if n > 0:  # 有需求才处理
+
+            # 情况 1：填紫色
             if (m == 0 and n > 0) or m < 0:
-                print(f"行 {row[0].row}: n={n}, m={m}")
-                column_12.fill = purple_fill  # 紫色填充
-            elif n > 0:
-                # n > 0 且 n/m＜1
-                if m != 0 and n / m < 1:
-                    print(f"行 {row[0].row}: n={n}, m={m}")
-                    column_12.fill = green_fill  # 绿色填充
-                # n > 0 且 n/m≥1
-                elif m != 0 and n / m >= 1:
-                    print(f"行 {row[0].row}: n={n}, m={m}")
-                    column_12.fill = red_fill  # 红色填充
+                print(f"行 {row[0].row} → 紫色: n={n}, m={m}")
+                column_12.fill = purple_fill
+
+                # 给当前行除第12列以外、有值的单元格染淡紫色
+                for i, cell in enumerate(row):
+                    if i != 11 and cell.value is not None:  # 排除第12列，避免覆盖
+                        cell.fill = purple_row_fill
+
+            # 情况 2：填绿色（不扩展同行填色）
+            elif m != 0 and n / m < 1:
+                print(f"行 {row[0].row} → 绿色: n={n}, m={m}")
+                column_12.fill = green_fill
+
+            # 情况 3：填红色 + 扩展染色
+            elif m != 0 and n / m >= 1:
+                print(f"行 {row[0].row} → 红色: n={n}, m={m}")
+                column_12.fill = red_fill
+
+                for i, cell in enumerate(row):
+                    if i != 11 and cell.value is not None:
+                        cell.fill = red_row_fill
+
 
 
 # ================================
