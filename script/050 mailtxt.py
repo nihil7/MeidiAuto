@@ -131,7 +131,7 @@ def prepare_summary_text(sheet, last_empty_row):
     monthly_plan = calculate_sum(sheet, sheet.cell(row=last_empty_row, column=16).value)  # N列
     monthly_remaining = monthly_plan - monthly_sent if monthly_plan and monthly_sent else 0
 
-    print(f"📊 库存总量: {stock_total}, 月已发总量: {monthly_sent}, 月计划: {monthly_plan}")
+    print(f"📊 库存总量: {stock_total}, 外仓出库总量: {monthly_sent}, 月计划: {monthly_plan}")
     return stock_total, monthly_sent, monthly_plan, monthly_remaining
 
 
@@ -234,7 +234,7 @@ def construct_html_content(sheet, colored_rows, date, stock_total, monthly_sent,
         """
 
     html += row("外仓库存总量", stock_total)
-    html += row("月已发总量", monthly_sent)
+    html += row("外仓出库总量", monthly_sent)
     html += row("月计划", monthly_plan)
     html += row("月预估还有要发货", monthly_remaining)
 

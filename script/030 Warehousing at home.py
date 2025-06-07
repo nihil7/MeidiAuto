@@ -66,7 +66,7 @@ for row in sheet_kc.iter_rows(min_row=2, max_col=3):
 sheet_kc["C4"] = "编号"
 
 # 设置 K4:O4 标题及格式
-header_titles = ["外应存", "最小发货", "家里库存", "家应存", "排产", "月计划", "月已发总量"]
+header_titles = ["外应存", "最小发货", "家里库存", "家应存", "排产", "月计划", "外仓出库总量"]
 for i, title in enumerate(header_titles):
     col_letter = chr(ord('K') + i)
     cell = sheet_kc[f"{col_letter}4"]

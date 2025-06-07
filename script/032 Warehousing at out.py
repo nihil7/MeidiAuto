@@ -5,12 +5,12 @@ import openpyxl
 from collections import defaultdict
 
 # ================================
-# 📂 文件路径配置（GitHub Actions 兼容）
+# 📂 1. 配置：确定库存文件夹路径
 # ================================
-# GitHub Actions 使用工作目录：GITHUB_WORKSPACE
+# 默认目录：若在 GitHub Actions 中运行，使用 GITHUB_WORKSPACE；否则使用当前目录
 default_inventory_folder = os.path.join(os.getenv("GITHUB_WORKSPACE", os.getcwd()), "data")
 
-# 通过 sys.argv 传递路径参数
+# 若用户通过命令行传入路径参数，则使用该路径
 inventory_folder = sys.argv[1] if len(sys.argv) >= 2 else default_inventory_folder
 print(f"📂 当前使用的文件夹路径: {inventory_folder}")
 
@@ -19,18 +19,18 @@ if not os.path.exists(inventory_folder):
     print(f"❌ 目录不存在: {inventory_folder}")
     sys.exit(1)
 
-# 匹配 Excel 文件：总库存*.xlsx
+# 匹配以“总库存”开头的 Excel 文件
 files = glob.glob(os.path.join(inventory_folder, '总库存*.xlsx'))
-
 if not files:
     print("❌ 没有找到符合条件的 Excel 文件！")
     sys.exit(1)
 
-inventory_file = files[0]  # 取第一个匹配的文件
+# 取第一个匹配文件作为处理目标
+inventory_file = files[0]
 print(f"✅ 找到文件：{inventory_file}")
 
 # ================================
-# 2. 打开Excel文件，读取工作表
+# 📖 2. 打开 Excel 文件并读取目标工作表
 # ================================
 try:
     wb_inventory = openpyxl.load_workbook(inventory_file)
@@ -38,7 +38,7 @@ except Exception as e:
     print(f"❌ 无法打开 Excel 文件: {e}")
     sys.exit(1)
 
-# 目标工作表
+# 指定要读取的明细工作表
 sheet_name_detail = '出入库明细表'
 if sheet_name_detail not in wb_inventory.sheetnames:
     print(f"❌ 工作表 '{sheet_name_detail}' 不存在！")
@@ -47,27 +47,29 @@ if sheet_name_detail not in wb_inventory.sheetnames:
 sheet_detail = wb_inventory[sheet_name_detail]
 
 # ================================
-# 3. 读取表头和列索引
+# 🧾 3. 提取表头并建立列索引映射
 # ================================
-header_row_index = 3
+header_row_index = 3  # 表头所在行为第4行（从1开始计数）
 headers = [cell.value for cell in sheet_detail[header_row_index]]
 print(f"✅ 表头内容：{headers}")
 
-# 获取列名和索引
+# 将列名映射到索引（从1开始，符合 openpyxl 要求）
 col_idx = {header: idx + 1 for idx, header in enumerate(headers)}
-required_columns = ['库存变动类别', '美的编码', '本期收入', '本期发出', '出入库日期']
 
+# 检查必要字段是否存在
+required_columns = ['库存变动类别', '美的编码', '本期收入', '本期发出', '出入库日期']
 for col in required_columns:
     if col not in col_idx:
         print(f"❌ 缺少必要列：{col}")
         sys.exit(1)
 
 # ================================
-# 4. 分类和汇总数据
+# 🔢 4. 分类汇总：统计每个编码的出入库数据
 # ================================
 summary_data = defaultdict(lambda: {'入库': 0, '出库': 0})
 other_records = []
 
+# 从数据行开始逐行读取
 for row in sheet_detail.iter_rows(min_row=header_row_index + 1, values_only=True):
     try:
         变动类别 = row[col_idx['库存变动类别'] - 1]
@@ -86,26 +88,29 @@ for row in sheet_detail.iter_rows(min_row=header_row_index + 1, values_only=True
         print(f"⚠️ 读取行数据失败: {e}")
 
 # ================================
-# 5. 创建/更新工作表
+# 📄 5. 创建“出入库汇总和其他变动”工作表
 # ================================
 sheet_name_combined = '出入库汇总和其他变动'
 if sheet_name_combined in wb_inventory.sheetnames:
     del wb_inventory[sheet_name_combined]
 sheet_combined = wb_inventory.create_sheet(sheet_name_combined)
 
-# 写入“出入库汇总”
+# 写入汇总数据标题行
 sheet_combined.append(['美的编码', '本期收入（入库）', '本期发出（出库）'])
+
+# 写入每个编码的入库/出库总量
 for 编码, data in summary_data.items():
     sheet_combined.append([编码, data['入库'], data['出库']])
 
-# ---- 其他变动明细 ----
+# 分隔空行后写入其他变动记录（保留原始字段结构）
 sheet_combined.append([])
-sheet_combined.append(['录入日期', '客户子库', '单号', '美的编码', '物料品名', '单位', '仓库', '库存变动类别', '本期收入', '本期发出', '条形码', '备注', '代编码', '出入库日期'])
+sheet_combined.append(['录入日期', '客户子库', '单号', '美的编码', '物料品名', '单位', '仓库',
+                       '库存变动类别', '本期收入', '本期发出', '条形码', '备注', '代编码', '出入库日期'])
 for record in other_records:
     sheet_combined.append(record)
 
 # ================================
-# 6. 自动调整列宽
+# 📐 6. 自动调整列宽
 # ================================
 for col in sheet_combined.columns:
     max_length = 0
@@ -116,23 +121,27 @@ for col in sheet_combined.columns:
     sheet_combined.column_dimensions[column].width = max_length + 2
 
 # ================================
-# 7. 将“出入库汇总和其他变动”第一列与“库存表”第二列匹配
+# 🔁 7. 将汇总的“出库”数据写回库存表第17列
 # ================================
 if '库存表' in wb_inventory.sheetnames:
     sheet_inventory = wb_inventory['库存表']
 
+    # 从汇总表提取编码列和“出库”列（注意：第3列为出库）
     summary_first_col = [row[0] for row in sheet_combined.iter_rows(min_row=2, values_only=True)]
-    summary_second_col = [row[1] for row in sheet_combined.iter_rows(min_row=2, values_only=True)]
+    summary_third_col = [row[2] for row in sheet_combined.iter_rows(min_row=2, values_only=True)]
 
-    inventory_second_col = [row[1] for row in sheet_inventory.iter_rows(min_row=2, max_row=sheet_inventory.max_row, values_only=True)]
+    # 获取库存表第2列（用于匹配编码）
+    inventory_second_col = [row[1] for row in sheet_inventory.iter_rows(min_row=2,
+                                  max_row=sheet_inventory.max_row, values_only=True)]
 
+    # 回填出库量到库存表第17列
     for idx, inventory_value in enumerate(inventory_second_col):
         if inventory_value in summary_first_col:
             summary_index = summary_first_col.index(inventory_value)
-            sheet_inventory.cell(row=idx + 2, column=17, value=summary_second_col[summary_index])
+            sheet_inventory.cell(row=idx + 2, column=17, value=summary_third_col[summary_index])
 
 # ================================
-# 8. 保存文件
+# 💾 8. 保存 Excel 文件
 # ================================
 try:
     wb_inventory.save(inventory_file)
