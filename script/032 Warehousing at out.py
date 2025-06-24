@@ -86,7 +86,6 @@ for row in sheet_detail.iter_rows(min_row=header_row_index + 1, values_only=True
             other_records.append(row)
     except Exception as e:
         print(f"⚠️ 读取行数据失败: {e}")
-
 # ================================
 # 📄 5. 创建“出入库汇总和其他变动”工作表
 # ================================
@@ -121,24 +120,31 @@ for col in sheet_combined.columns:
     sheet_combined.column_dimensions[column].width = max_length + 2
 
 # ================================
-# 🔁 7. 将汇总的“出库”数据写回库存表第17列
+# 🔁 7. 将汇总的“出库”和“入库”数据写回库存表
 # ================================
 if '库存表' in wb_inventory.sheetnames:
     sheet_inventory = wb_inventory['库存表']
 
-    # 从汇总表提取编码列和“出库”列（注意：第3列为出库）
+    # 提取编码列（第1列）和“入库”（第2列）、“出库”（第3列）列
     summary_first_col = [row[0] for row in sheet_combined.iter_rows(min_row=2, values_only=True)]
+    summary_second_col = [row[1] for row in sheet_combined.iter_rows(min_row=2, values_only=True)]
     summary_third_col = [row[2] for row in sheet_combined.iter_rows(min_row=2, values_only=True)]
 
     # 获取库存表第2列（用于匹配编码）
-    inventory_second_col = [row[1] for row in sheet_inventory.iter_rows(min_row=2,
-                                  max_row=sheet_inventory.max_row, values_only=True)]
+    inventory_second_col = [row[1] for row in sheet_inventory.iter_rows(
+        min_row=2, max_row=sheet_inventory.max_row, values_only=True)]
 
-    # 回填出库量到库存表第17列
+    # 写入“出库”到第18列
     for idx, inventory_value in enumerate(inventory_second_col):
         if inventory_value in summary_first_col:
             summary_index = summary_first_col.index(inventory_value)
-            sheet_inventory.cell(row=idx + 2, column=17, value=summary_third_col[summary_index])
+            sheet_inventory.cell(row=idx + 2, column=18, value=summary_third_col[summary_index])
+
+    # ✅ 添加在上面“写入出库”之后：写入“入库”到第19列
+    for idx, inventory_value in enumerate(inventory_second_col):
+        if inventory_value in summary_first_col:
+            summary_index = summary_first_col.index(inventory_value)
+            sheet_inventory.cell(row=idx + 2, column=19, value=summary_second_col[summary_index])
 
 # ================================
 # 💾 8. 保存 Excel 文件

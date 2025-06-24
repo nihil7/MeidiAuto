@@ -41,7 +41,7 @@ for merged_range in merged_cells_ranges:
         sheet_kc.unmerge_cells(str(merged_range))
 
 # 插入列
-sheet_kc.insert_cols(10, 7)
+sheet_kc.insert_cols(10, 10)
 sheet_kc.insert_cols(3, 1)
 
 # 让第 3 列（C 列）居中
@@ -51,9 +51,9 @@ for cell in sheet_kc["C"]:
 # 重新合并单元格
 sheet_kc.merge_cells('H3:J3')
 # 合并 R3:T3
-sheet_kc.merge_cells('R3:T3')
+sheet_kc.merge_cells('U3:W3')
 # 只在左上角单元格 R3 赋值
-sheet_kc["R3"] = "不合格"
+sheet_kc["U3"] = "不合格"
 
 
 # 提取第2列数据的后4位，写入第3列
@@ -66,7 +66,7 @@ for row in sheet_kc.iter_rows(min_row=2, max_col=3):
 sheet_kc["C4"] = "编号"
 
 # 设置 K4:O4 标题及格式
-header_titles = ["外应存", "最小发货", "家里库存", "家应存", "排产", "月计划", "外仓出库总量"]
+header_titles = ["外应存", "最小发货", "家里库存", "家应存", "排产", "月计划", "月计划缺口", "外仓出库总量", "外仓入库总量"]
 for i, title in enumerate(header_titles):
     col_letter = chr(ord('K') + i)
     cell = sheet_kc[f"{col_letter}4"]

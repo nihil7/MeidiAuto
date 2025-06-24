@@ -119,7 +119,18 @@ def set_alignment(sheet, min_row, min_col, max_col, align='right'):
 set_alignment(sheet_inventory, min_row=start_row, min_col=11, max_col=17)
 
 # ================================
-# 7. 设置K4:Q49单元格的边框和字体大小
+# 🧩 设置区域参数（便于维护）
+# ================================
+BORDER_START_ROW = 4
+BORDER_END_ROW = 49
+BORDER_START_COL = 11  # K列
+BORDER_END_COL = 19    # Q列
+
+FONT7_COLS = [11, 14]  # 需要设置为 7号字体的列，如K、N
+FONT7_ROW_END = 60    # 设置字体行范围（4~100）
+
+# ================================
+# 7. 设置边框和字体
 # ================================
 thin_border = Border(
     top=Side(style="thin"),
@@ -128,24 +139,22 @@ thin_border = Border(
     bottom=Side(style="thin")
 )
 
-for row in sheet_inventory.iter_rows(min_row=4, max_row=51, min_col=6, max_col=17):
+# 设置边框 + 字体10号
+for row in sheet_inventory.iter_rows(
+    min_row=BORDER_START_ROW, max_row=BORDER_END_ROW + 1,
+    min_col=BORDER_START_COL, max_col=BORDER_END_COL + 1
+):
     for cell in row:
         cell.border = thin_border
         cell.font = Font(size=10)
 
-for row in sheet_inventory.iter_rows(min_row=4, max_row=100, min_col=11, max_col=11):
-    for cell in row:
-        cell.font = Font(size=7)
+# 设置指定列为字体7号
+for col_idx in FONT7_COLS:
+    for row in sheet_inventory.iter_rows(min_row=BORDER_START_ROW, max_row=FONT7_ROW_END + 1,
+                                         min_col=col_idx, max_col=col_idx):
+        for cell in row:
+            cell.font = Font(size=7)
 
-for row in sheet_inventory.iter_rows(min_row=4, max_row=100, min_col=14, max_col=14):
-    for cell in row:
-        cell.font = Font(size=7)
-
-# ================================
-# 8. 合并单元格R3:T3并写入“不合格”
-# ================================
-sheet_inventory.merge_cells('R3:T3')
-sheet_inventory['R3'] = '不合格'
 
 # ================================
 # 9. 检查是否含有汉字，设置字体大小为5
