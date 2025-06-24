@@ -16,8 +16,7 @@ subprograms = [
     "041 operation.py",
     "042 Color display.py",
     "050 image local.py",
-    "050 mailtxt.py",
-    "051 Send an email.py"
+    "050 mailtxt.py"
 ]
 
 # 依次执行子程序

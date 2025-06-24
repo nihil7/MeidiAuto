@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8f0b6721-c018-412c-ad77-c58279931e3c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/030 Warehousing at home.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/030 Warehousing at home.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/032 Warehousing at out.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/032 Warehousing at out.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/041 operation.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/041 operation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/050 mailtxt.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/050 mailtxt.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/data/list.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/script/data/list.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/data/output.html" beforeDir="false" afterPath="$PROJECT_DIR$/script/data/output.html" afterDir="false" />
-    </list>
+    <list default="true" id="8f0b6721-c018-412c-ad77-c58279931e3c" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
