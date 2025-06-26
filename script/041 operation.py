@@ -123,22 +123,21 @@ try:
         sheet[f"{col_letter(col_gap)}{row_idx}"].font = gray_font if gap_result <= 0 else default_font
 
     print("✅ 公式计算完成")
-
     # ================================
-    # 写入 G～U 列合计公式（非负数值求和）
+    # 写入 G～U 列合计结果（只保留计算值，无公式）
     # ================================
     print(f"✅ 计算求和的目标行: {last_empty_row}")
     for col in range(7, 22):  # G~U
         col_letter = get_column_letter(col)
         start_row = 5
         end_row = last_empty_row - 1
-        range_expr = f"{col_letter}{start_row}:{col_letter}{end_row}"
+        total = 0
 
-        sum_formula = (
-            f'=SUMPRODUCT(--(ISNUMBER(--{range_expr})), '
-            f'--(--{range_expr}>=0), '
-            f'--(--{range_expr}))'
-        )
+        for row in range(start_row, end_row + 1):
+            cell_value = sheet.cell(row=row, column=col).value
+            if isinstance(cell_value, (int, float)) and cell_value >= 0:
+                total += cell_value
+
         cell_addr = f"{col_letter}{last_empty_row}"
         sum_cell = sheet[cell_addr]
 
@@ -147,8 +146,8 @@ try:
         else:
             print(f"🆕 即将写入 → {cell_addr}")
 
-        sum_cell.value = sum_formula
-        print(f"✅ 已写入公式至 {cell_addr}: {sum_formula}")
+        sum_cell.value = total
+        print(f"✅ 已写入合计值至 {cell_addr}: {total:,.1f}")
 
     # ================================
     # 保存Excel文件

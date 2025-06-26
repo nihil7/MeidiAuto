@@ -7,11 +7,7 @@
     <list default="true" id="8f0b6721-c018-412c-ad77-c58279931e3c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/script/030 Warehousing at home.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/030 Warehousing at home.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/033 list insertion.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/033 list insertion.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/script/041 operation.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/041 operation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/050 image local.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/050 image local.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/050 mailtxt.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/050 mailtxt.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/data/list.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/script/data/list.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/script/data/output.html" beforeDir="false" afterPath="$PROJECT_DIR$/script/data/output.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/script/main local.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/main local.py" afterDir="false" />
     </list>
@@ -96,7 +92,7 @@
     </key>
   </component>
   <component name="RunManager" selected="Python.main local">
-    <configuration name="021 Merge excel" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="010 clean" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="MeidiAuto" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -109,7 +105,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/script/021 Merge excel.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/script/010 clean.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -162,7 +158,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="042 Color display" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="050 mailtxt" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="MeidiAuto" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -175,7 +171,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/script/042 Color display.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/script/050 mailtxt.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -209,10 +205,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.main local" />
+        <item itemvalue="Python.050 mailtxt" />
+        <item itemvalue="Python.010 clean" />
         <item itemvalue="Python.033 list insertion" />
         <item itemvalue="Python.030 Warehousing at home" />
-        <item itemvalue="Python.021 Merge excel" />
-        <item itemvalue="Python.042 Color display" />
       </list>
     </recent_temporary>
   </component>

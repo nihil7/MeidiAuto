@@ -15,8 +15,8 @@ subprograms = [
     "033 list insertion.py",
     "041 operation.py",
     "042 Color display.py",
-    #"050 image local.py",
-    #"050 mailtxt.py",
+    "050 image local.py",
+    "050 mailtxt.py",
     #"051 Send an email.py"
 ]
 

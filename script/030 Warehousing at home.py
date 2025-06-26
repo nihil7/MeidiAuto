@@ -199,6 +199,11 @@ for col, width in col_widths.items():
     sheet_kc.column_dimensions[col].width = width + 0.6
 print("✅ 固定列宽设置完成")
 
+# ✅ 设置第1行行高为8
+sheet_kc.row_dimensions[1].height = 18
+print("✅ 第1行行高已设置为 8")
+
+
 # 冻结前4行
 sheet_kc.freeze_panes = "A5"
 print("✅ 表头冻结完成（冻结到第4行）")
