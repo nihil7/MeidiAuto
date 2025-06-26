@@ -182,7 +182,7 @@ if "家里库存" in merged_wb.sheetnames:
 # 会计格式：G到Q列
 for col in range(7, 22):
     col_letter = get_column_letter(col)
-    format_range = f"{col_letter}5:{col_letter}{last_empty_row - 1}"
+    format_range = f"{col_letter}5:{col_letter}{last_empty_row}"
     for cell in sheet_kc[format_range]:
         for c in cell:
             c.alignment = Alignment(horizontal="right")
