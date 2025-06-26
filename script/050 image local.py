@@ -36,7 +36,7 @@ latest_file = max(files, key=os.path.getctime)
 print(f"✅ 找到最新的文件：{latest_file}")
 
 # ================================
-# 2. 打开Excel文件，复制 A1:Q60 区域，保存为图片
+# 2. 打开Excel文件，复制 A1:S60 区域，保存为图片
 # ================================
 
 # 打开 Excel 文件并设置 Excel 不显示
@@ -44,8 +44,8 @@ app = xw.App(visible=False)  # 设置 visible=False，防止弹出 Excel 窗口
 wb = app.books.open(latest_file)
 ws = wb.sheets[0]  # 默认打开第一个工作表
 
-# 选择区域：A1 到 Q60
-range_to_save_as_image = ws.range('A1:Q60')
+# 选择区域：A1 到 S60
+range_to_save_as_image = ws.range('A1:S60')
 
 # 复制区域为图片
 range_to_save_as_image.api.CopyPicture(Format=2)  # Format=2表示复制为图片格式

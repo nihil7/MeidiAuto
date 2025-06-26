@@ -77,12 +77,11 @@ def is_fill_color(cell, color_code: str):
 def find_colored_rows(sheet):
     colored_rows = []
     for row in range(2, sheet.max_row + 1):
-        cell = sheet.cell(row=row, column=12)  # 第12列
+        cell = sheet.cell(row=row, column=12)
         if is_fill_color(cell, "FF0000") or is_fill_color(cell, "3F0065"):
             colored_rows.append(row)
             color_hex = get_cell_fill_rgb(cell)
             print(f"✅ 符合条件颜色 → 行: {row} RGB: #{color_hex}")
-
     return colored_rows
 
 
@@ -102,10 +101,16 @@ def find_last_empty_row(sheet):
             return row
     return sheet.max_row + 1
 
+
 # ================================
 # 计算公式并返回总和
 # ================================
 def calculate_sum(sheet, formula):
+    if isinstance(formula, (int, float)):
+        return formula
+    if not isinstance(formula, str):
+        return 0
+
     match = re.match(r"^=SUM\((.+)\)$", formula)
     if match:
         cell_range = match.group(1)
@@ -119,110 +124,84 @@ def calculate_sum(sheet, formula):
             if isinstance(value, (int, float)):
                 total += value
         return total
-    return None
+    return 0
 
 
 # ================================
 # 获取库存合计信息
 # ================================
 def prepare_summary_text(sheet, last_empty_row):
-    stock_total = calculate_sum(sheet, sheet.cell(row=last_empty_row, column=10).value)  # J列
-    monthly_sent = calculate_sum(sheet, sheet.cell(row=last_empty_row, column=17).value)  # M列
-    monthly_plan = calculate_sum(sheet, sheet.cell(row=last_empty_row, column=16).value)  # N列
+    stock_total       = calculate_sum(sheet, sheet.cell(row=last_empty_row, column=10).value)
+    monthly_plan      = calculate_sum(sheet, sheet.cell(row=last_empty_row, column=16).value)
+    plan_gap_output   = calculate_sum(sheet, sheet.cell(row=last_empty_row, column=17).value)
+    monthly_sent      = calculate_sum(sheet, sheet.cell(row=last_empty_row, column=18).value)
+    monthly_received  = calculate_sum(sheet, sheet.cell(row=last_empty_row, column=19).value)
     monthly_remaining = monthly_plan - monthly_sent if monthly_plan and monthly_sent else 0
 
-    print(f"📊 库存总量: {stock_total}, 外仓出库总量: {monthly_sent}, 月计划: {monthly_plan}")
-    return stock_total, monthly_sent, monthly_plan, monthly_remaining
-
-
+    print(f"📊 库存总量: {stock_total}, 月计划: {monthly_plan}, 缺口排产: {plan_gap_output}, 出库: {monthly_sent}, 入库: {monthly_received}")
+    return stock_total, monthly_plan, plan_gap_output, monthly_sent, monthly_received, monthly_remaining
 
 
 # ================================
 # 构建输出文本
 # ================================
-# ================================
-# 构建输出文本
-# ================================
-# ================================
-# 构建输出文本
-# ================================
-def construct_html_content(sheet, colored_rows, date, stock_total, monthly_sent, monthly_plan, monthly_remaining):
+def construct_html_content(sheet, colored_rows, date,
+                           stock_total, monthly_plan, plan_gap_output,
+                           monthly_sent, monthly_received, monthly_remaining):
     html = """
     <html>
     <head>
         <meta charset="UTF-8">
         <style>
-            table { 
-                border-collapse: collapse; 
-                width: auto; /* 自适应宽度 */
-                margin-top: 10px; 
-            }
-            th, td { 
-                border: 1px solid #999; 
-                padding: 6px 10px; /* 调整内边距，使表格更紧凑 */
-            }
-            th { 
-                background-color: #f2f2f2; 
-                text-align: left; /* 标题靠左 */
-            }
-            td.right { 
-                text-align: right; 
-            }
-            td.left { 
-                text-align: left; 
-            }
+            table { border-collapse: collapse; width: auto; margin-top: 10px; }
+            th, td { border: 1px solid #999; padding: 6px 10px; }
+            th { background-color: #f2f2f2; text-align: left; }
+            td.right { text-align: right; }
+            td.left { text-align: left; }
         </style>
     </head>
     <body>
     """
 
-    # 开头段落
     html += f"""
     <h1>{date} 重庆俊都仓储数据</h1>
-
     <h5>“外仓库存＜50%外仓应存数量”的物料有 <strong>{len(colored_rows)}</strong> 款</h5>
     """
 
-    # 表1：异常库存明细
     html += """
     <table>
         <tr>
             <th>编号</th>
             <th>库存</th>
             <th>外应存</th>
-            <th>家里库存</th>  <!-- 新增家里库存列 -->
+            <th>家里库存</th>
         </tr>
     """
     for row in colored_rows:
         code = sheet.cell(row=row, column=3).value
         stock = sheet.cell(row=row, column=10).value
         expected = sheet.cell(row=row, column=11).value
-        home_stock = sheet.cell(row=row, column=13).value  # 获取家里库存
+        home_stock = sheet.cell(row=row, column=13).value
 
         stock_fmt = f"{stock:,.1f}" if isinstance(stock, (int, float)) else stock
         expected_fmt = f"{expected:,.1f}" if isinstance(expected, (int, float)) else expected
-        home_stock_fmt = f"{home_stock:,.1f}" if isinstance(home_stock, (int, float)) else home_stock  # 格式化家里库存
+        home_stock_fmt = f"{home_stock:,.1f}" if isinstance(home_stock, (int, float)) else home_stock
 
         html += f"""
         <tr>
             <td>{code}</td>
             <td class="right">{stock_fmt}</td>
             <td class="right">{expected_fmt}</td>
-            <td class="right">{home_stock_fmt}</td>  <!-- 显示家里库存 -->
+            <td class="right">{home_stock_fmt}</td>
         </tr>
         """
 
     html += "</table>"
 
-    # 表2：汇总信息
     html += """
-
     <h5>汇总信息</h5>
     <table>
-        <tr>
-            <th>项目</th>
-            <th>数值</th>
-        </tr>
+        <tr><th>项目</th><th>数值</th></tr>
     """
 
     def row(label, value):
@@ -234,13 +213,15 @@ def construct_html_content(sheet, colored_rows, date, stock_total, monthly_sent,
         """
 
     html += row("外仓库存总量", stock_total)
-    html += row("外仓出库总量", monthly_sent)
     html += row("月计划", monthly_plan)
+    html += row("月计划缺口排产", plan_gap_output)
+    html += row("外仓出库总量", monthly_sent)
+    html += row("外仓入库总量", monthly_received)
     html += row("月预估还有要发货", monthly_remaining)
 
     html += "</table>\n</body></html>"
-
     return html
+
 
 # ================================
 # 保存为 HTML 文件
@@ -249,9 +230,7 @@ def save_output_to_file(html_content, output_dir):
     output_filename = os.path.join(output_dir, "output.html")
     with open(output_filename, "w", encoding="utf-8") as f:
         f.write(html_content)
-
     print(f"📁 已成功保存为 HTML 文件：{output_filename}")
-
 
 
 # ================================
@@ -264,19 +243,19 @@ def main():
 
     colored_rows = find_colored_rows(sheet)
     date = get_date(sheet)
-
     last_empty_row = find_last_empty_row(sheet)
     print(f"⚡ 发现 B 列第一个空单元格所在行: {last_empty_row}")
 
-    stock_total, monthly_sent, monthly_plan, monthly_remaining = prepare_summary_text(sheet, last_empty_row)
+    stock_total, monthly_plan, plan_gap_output, monthly_sent, monthly_received, monthly_remaining = prepare_summary_text(sheet, last_empty_row)
 
-    html_content = construct_html_content(sheet, colored_rows, date, stock_total, monthly_sent, monthly_plan,
-                                          monthly_remaining)
+    html_content = construct_html_content(
+        sheet, colored_rows, date,
+        stock_total, monthly_plan, plan_gap_output,
+        monthly_sent, monthly_received, monthly_remaining
+    )
 
     print("\n📋 HTML 已生成，预览内容省略…")
-
     save_output_to_file(html_content, inventory_folder)
-
     print("✅ 红色或紫色单元格数量：", len(colored_rows))
     print("📌 行号列表：", colored_rows)
 
