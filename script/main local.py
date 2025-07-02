@@ -7,8 +7,8 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # 定义要执行的子程序列表
 subprograms = [
-    "010 clean.py",
-    "020 Email download.py",
+    #"010 clean.py",
+    #"020 Email download.py",
     "021 Merge excel.py",
     "030 Warehousing at home.py",
     "032 Warehousing at out.py",
@@ -17,8 +17,8 @@ subprograms = [
     "042 Color display.py",
     #"050 image local.py",
     "050 mailtxt.py",
-    "052 send email.py",
-    "010 clean.py"
+    #"052 send email.py",
+    #"010 clean.py"
     #"051 Send an email.py"
 
 ]
