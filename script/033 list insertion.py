@@ -1,185 +1,136 @@
-import openpyxl
 import os
 import re
-from openpyxl.styles import Font, Alignment, Border, Side
 import sys
+import openpyxl
+from openpyxl.styles import Font, Alignment, Border, Side
 
-# ================================
-# 1. 文件路径配置（支持传参）
-# ================================
-# 默认路径
-default_inventory_folder = os.path.join(os.getcwd(), "data")  # GitHub 使用相对路径
+# =======================
+# 配置区（按需改这里）
+# =======================
+DEFAULT_INV_DIR = os.path.join(os.getcwd(), "data")  # “总库存*.xlsx”所在目录
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+DEMAND_XLSX = "list.xlsx"
+DEMAND_SHEET = "2503"
+INV_SHEET = "库存表"
 
-# 判断是否传入路径
-if len(sys.argv) >= 2:
-    inventory_folder = sys.argv[1]
-    print(f"✅ 使用传入路径: {inventory_folder}")
-else:
-    inventory_folder = default_inventory_folder
-    print(f"⚠️ 未传入路径，使用默认路径: {inventory_folder}")
+START_ROW = 5                 # 数据起始行（库存表）
+WRITE_MAP = {11: "B", 14: "C", 16: "D", 20: "E"}  # K,N,P,T
+ALIGN_COL_RANGE = (11, 20)    # K~T（对齐范围）
+BORDER_ROWS = (4, 50)         # 行 4~50（含端点）边框
+BORDER_COLS = (11, 20)        # 列 K(11)~T(20)（含端点）
+FONT7_COLS = [11, 14]         # K、N 列设 7 号字
+FONT7_ROWS = (4, 54)          # 行 4~54（含端点）
 
-# 确保文件夹路径存在
-if not os.path.exists(inventory_folder):
-    print(f"❌ 文件夹路径不存在: {inventory_folder}")
-    exit()
+# =======================
+# 路径与文件
+# =======================
+inv_dir = sys.argv[1] if len(sys.argv) >= 2 else DEFAULT_INV_DIR
+if not os.path.exists(inv_dir):
+    print(f"❌ 库存目录不存在: {inv_dir}"); sys.exit(1)
 
-
-# 获取当前 Python 脚本所在目录
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# 获取 `data` 目录的路径
-data_folder = os.path.join(script_dir, "data")
-
-# 确保 `data` 目录存在
-if not os.path.exists(data_folder):
-    print(f"❌ 数据文件夹不存在: {data_folder}")
-    exit()
-
-# 获取当前脚本所在目录（即 script/ 目录）
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# 获取 `data` 目录的正确路径
-data_folder = os.path.join(script_dir, "data")
-
-# 确保 `data` 目录存在
-if not os.path.exists(data_folder):
-    print(f"❌ 数据文件夹不存在: {data_folder}")
-    exit()
-
-# 设置 '量化需求' 文件路径
-demand_file = os.path.join(data_folder, "list.xlsx")
-
-# 确保文件存在
+demand_file = os.path.join(DATA_DIR, DEMAND_XLSX)
 if not os.path.exists(demand_file):
-    print(f"❌ 文件不存在: {demand_file}")
-    exit()
+    print(f"❌ 需求文件不存在: {demand_file}"); sys.exit(1)
 
-print(f"✅ 找到文件: {demand_file}")
-
-# ================================
-# 2. 查找“总库存”文件
-# ================================
 inventory_file = None
-for file in os.listdir(inventory_folder):
-    if file.endswith('.xlsx') and '总库存' in file:
-        inventory_file = os.path.join(inventory_folder, file)
-        break
-
+for f in os.listdir(inv_dir):
+    if f.endswith(".xlsx") and "总库存" in f:
+        inventory_file = os.path.join(inv_dir, f); break
 if not inventory_file:
-    print("❌ 没有找到包含'总库存'的文件！")
-    exit()
+    print("❌ 未找到包含“总库存”的文件"); sys.exit(1)
 
-print(f"✅ 找到库存文件：{inventory_file}")
-
-# ================================
-# 3. 打开Excel文件
-# ================================
-wb_demand = openpyxl.load_workbook(demand_file)
-sheet_demand = wb_demand['2503']
+# =======================
+# 打开工作簿
+# =======================
+wb_demand = openpyxl.load_workbook(demand_file, data_only=True)
+if DEMAND_SHEET not in wb_demand.sheetnames:
+    print(f"❌ 需求缺少工作表: {DEMAND_SHEET}"); sys.exit(1)
+sheet_demand = wb_demand[DEMAND_SHEET]
 
 wb_inventory = openpyxl.load_workbook(inventory_file)
-sheet_inventory = wb_inventory['库存表']
+if INV_SHEET not in wb_inventory.sheetnames:
+    print(f"❌ 库存缺少工作表: {INV_SHEET}"); sys.exit(1)
+sheet_inventory = wb_inventory[INV_SHEET]
 
-# ================================
-# 4. 提取"2503"数据
-# ================================
-demand_data = {
-    str(row[0]).strip(): (row[1], row[2], row[3])
-    for row in sheet_demand.iter_rows(min_row=2, max_col=4, values_only=True)
-}
+# =======================
+# 构建映射：编码 → (B,C,D,E)
+# =======================
+demand_data = {}
+for a, b, c, d, e in sheet_demand.iter_rows(min_row=2, max_col=5, values_only=True):
+    if a is None: continue
+    key = str(a).strip()
+    if not key: continue
+    demand_data[key] = (b, c, d, e)
 
-# ================================
-# 5. 更新“库存表”数据
-# ================================
-updated_count = 0
-start_row = 5  # 数据起始行
+# =======================
+# 写入：K/N/P/T
+# =======================
+updated = 0
+for row in sheet_inventory.iter_rows(min_row=START_ROW, max_col=20):
+    code = row[2].value  # C列
+    if code is None: continue
+    code = str(code).strip()
+    vals = demand_data.get(code)
+    if not vals: continue
+    r = row[0].row
+    sheet_inventory.cell(row=r, column=11, value=vals[0])  # K ← B
+    sheet_inventory.cell(row=r, column=14, value=vals[1])  # N ← C
+    sheet_inventory.cell(row=r, column=16, value=vals[2])  # P ← D
+    sheet_inventory.cell(row=r, column=20, value=vals[3])  # T ← E
+    updated += 1
 
-for row in sheet_inventory.iter_rows(min_row=start_row, max_col=15):
-    inventory_code = str(row[2].value).strip()
+# =======================
+# 对齐（K~T，右对齐）
+# =======================
+def align_range(sheet, start_row, c1, c2, h='right'):
+    for col in range(c1, c2 + 1):
+        for r in sheet.iter_rows(min_row=start_row, min_col=col, max_col=col):
+            for cell in r:
+                cell.alignment = Alignment(horizontal=h)
 
-    if inventory_code in demand_data:
-        B值, C值, D值 = demand_data[inventory_code]
+align_range(sheet_inventory, START_ROW, *ALIGN_COL_RANGE)
 
-        sheet_inventory.cell(row=row[0].row, column=11, value=B值)  # K列
-        sheet_inventory.cell(row=row[0].row, column=14, value=C值)  # N列
-        sheet_inventory.cell(row=row[0].row, column=16, value=D值)  # P列
+# >>> 新增：T 列左对齐 <<<
+for r in sheet_inventory.iter_rows(min_row=START_ROW, min_col=20, max_col=20):
+    for cell in r:
+        cell.alignment = Alignment(horizontal='left')
 
-        updated_count += 1
 
-# ================================
-# 6. 格式化单元格
-# ================================
-def set_alignment(sheet, min_row, min_col, max_col, align='right'):
-    """设置对齐方式"""
-    for col in range(min_col, max_col + 1):
-        for row in sheet.iter_rows(min_row=min_row, min_col=col, max_col=col):
-            for cell in row:
-                cell.alignment = Alignment(horizontal=align)
+# =======================
+# 边框与字体
+# =======================
+thin = Border(top=Side(style="thin"), left=Side(style="thin"),
+              right=Side(style="thin"), bottom=Side(style="thin"))
 
-set_alignment(sheet_inventory, min_row=start_row, min_col=11, max_col=17)
+r1, r2 = BORDER_ROWS
+c1, c2 = BORDER_COLS
 
-# ================================
-# 🧩 设置区域参数（便于维护）
-# ================================
-BORDER_START_ROW = 4
-BORDER_END_ROW = 49
-BORDER_START_COL = 11  # K列
-BORDER_END_COL = 19    # Q列
-
-FONT7_COLS = [11, 14]  # 需要设置为 7号字体的列，如K、N
-FONT7_ROW_END = 52    # 设置字体行范围（4~100）
-
-# ================================
-# 7. 设置边框和字体
-# ================================
-thin_border = Border(
-    top=Side(style="thin"),
-    left=Side(style="thin"),
-    right=Side(style="thin"),
-    bottom=Side(style="thin")
-)
-
-# 设置边框 + 字体10号
-for row in sheet_inventory.iter_rows(
-    min_row=BORDER_START_ROW, max_row=BORDER_END_ROW + 1,
-    min_col=BORDER_START_COL, max_col=BORDER_END_COL + 1
-):
-    for cell in row:
-        cell.border = thin_border
+# 边框 + 基础10号字
+for rows in sheet_inventory.iter_rows(min_row=r1, max_row=r2, min_col=c1, max_col=c2):
+    for cell in rows:
+        cell.border = thin
         cell.font = Font(size=10)
 
-# 设置指定列为字体7号
-for col_idx in FONT7_COLS:
-    for row in sheet_inventory.iter_rows(min_row=BORDER_START_ROW, max_row=FONT7_ROW_END + 1,
-                                         min_col=col_idx, max_col=col_idx):
-        for cell in row:
+# 指定列改 7 号
+fr1, fr2 = FONT7_ROWS
+for col in FONT7_COLS:
+    for rows in sheet_inventory.iter_rows(min_row=fr1, max_row=fr2, min_col=col, max_col=col):
+        for cell in rows:
             cell.font = Font(size=7)
 
+# 中文缩小为 5 号（K、N 从第 5 行起）
+def has_cn(s): return bool(re.search(r'[\u4e00-\u9fff]', str(s)))
+for col in [11, 14]:
+    for rows in sheet_inventory.iter_rows(min_row=START_ROW, min_col=col, max_col=col):
+        for cell in rows:
+            if cell.value is not None and has_cn(cell.value):
+                cell.font = Font(size=5)
 
-# ================================
-# 9. 检查是否含有汉字，设置字体大小为5
-# ================================
-def contains_chinese(text):
-    """判断字符串是否包含汉字"""
-    return bool(re.search('[\u4e00-\u9fff]', str(text)))
-
-def modify_font_size_if_chinese(sheet, col, min_row=5, font_size=5):
-    """检查是否有汉字，设置字体大小"""
-    for row in sheet.iter_rows(min_row=min_row, min_col=col, max_col=col):
-        for cell in row:
-            if contains_chinese(cell.value):
-                print(f"✅ 发现汉字：{cell.value}，单元格位置：{cell.coordinate}")
-                cell.font = Font(size=font_size)
-
-modify_font_size_if_chinese(sheet_inventory, col=11)  # K列
-modify_font_size_if_chinese(sheet_inventory, col=14)  # N列
-
-# ================================
-# 10. **保存源文件**
-# ================================
+# =======================
+# 保存
+# =======================
 try:
     wb_inventory.save(inventory_file)
-    print(f"✅ 完成！共更新 {updated_count} 行。")
-    print(f"✅ 源文件已直接修改并保存：{inventory_file}")
+    print(f"✅ 更新 {updated} 行 | 文件: {os.path.basename(inventory_file)}")
 except Exception as e:
-    print(f"❌ 保存源文件失败：{e}")
+    print(f"❌ 保存失败: {e}")
