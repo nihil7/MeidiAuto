@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8f0b6721-c018-412c-ad77-c58279931e3c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/010 clean.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/010 clean.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/030 Warehousing at home.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/030 Warehousing at home.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/033 list insertion.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/033 list insertion.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/data/list.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/script/data/list.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/data/output.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/main local.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/main local.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/月汇总.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/月汇总.py" afterDir="false" />
-    </list>
+    <list default="true" id="8f0b6721-c018-412c-ad77-c58279931e3c" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
