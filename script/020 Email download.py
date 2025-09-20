@@ -32,6 +32,7 @@ import openpyxl
 from bs4 import BeautifulSoup
 from openpyxl.styles import Alignment
 from dotenv import load_dotenv
+from io import StringIO  # ✅ 新增：用于包装 HTML 字符串给 pandas.read_html
 
 # ================================
 # 📂 路径配置（支持主程序传参）
@@ -344,14 +345,13 @@ def download_attachments(msg, download_folder: str) -> None:
 
         print(f"📥 附件已下载: {file_path}")
 
-
 # ================================
 # 🧠 解析 HTML 表格并导出 Excel
 # ================================
 def parse_html_table(html_content: str) -> list[list[str]]:
     """
     解析 HTML 表格为二维列表：
-    1) 优先使用 pandas.read_html
+    1) 优先使用 pandas.read_html（用 StringIO 包装字符串，避免 FutureWarning）
     2) 失败则回退到 BeautifulSoup，并在单 <td> 时按 <br>/<p> 拆列
     返回：[[header...], [row1...], [row2...], ...]（全为字符串）
     """
@@ -359,7 +359,7 @@ def parse_html_table(html_content: str) -> list[list[str]]:
 
     # ---------- ① pandas 优先 ----------
     try:
-        tables = pd.read_html(html_content)
+        tables = pd.read_html(StringIO(html_content))  # ✅ 修正：用 StringIO 包装
     except Exception:
         tables = []
 
@@ -392,13 +392,14 @@ def parse_html_table(html_content: str) -> list[list[str]]:
             else:
                 header = [str(c) for c in df.columns]
 
-        rows = (
-            df.fillna("")
-              .astype(str)
-              .applymap(lambda x: x.strip())
-              .values
-              .tolist()
-        )
+        # ✅ 修正：用 DataFrame.map 替代 applymap，并对旧版 pandas 兜底
+        tmp = df.fillna("").astype(str)
+        try:
+            tmp = tmp.map(str.strip)        # pandas ≥ 2.2
+        except AttributeError:
+            tmp = tmp.applymap(lambda x: x.strip())  # 旧版兼容
+        rows = tmp.values.tolist()
+
         data = [header] + rows
 
         # 兜底：若表头是 '0..N-1' 这种索引样式，删掉并用下一行当表头
@@ -469,8 +470,6 @@ def parse_html_table(html_content: str) -> list[list[str]]:
         return best_data
 
     return _parse_html_with_bs(html_content)
-
-
 
 def save_to_excel(data: list[list[str]], save_dir: str, file_prefix="存量查询") -> None:
     if not data:

@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8f0b6721-c018-412c-ad77-c58279931e3c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="8f0b6721-c018-412c-ad77-c58279931e3c" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -91,7 +88,7 @@
       <recent name="C:\Users\ishel\Desktop\编程总库\MeidiAuto\script\data" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.main local">
+  <component name="RunManager" selected="Python.020 Email download">
     <configuration name="010 clean" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="MeidiAuto" />
       <option name="ENV_FILES" value="" />
@@ -114,7 +111,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="033 list insertion" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="020 Email download" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="MeidiAuto" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -127,7 +124,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/script/033 list insertion.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/script/020 Email download.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -226,11 +223,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.020 Email download" />
         <item itemvalue="Python.main local" />
         <item itemvalue="Python.010 clean" />
         <item itemvalue="Python.042 Color display" />
         <item itemvalue="Python.041 operation" />
-        <item itemvalue="Python.033 list insertion" />
       </list>
     </recent_temporary>
   </component>
