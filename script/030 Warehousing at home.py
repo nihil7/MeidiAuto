@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+"""
+021 Merge excel.py
+说明：
+- 在库存表中插入所需列、生成“第一页副本/家里库存”、按 4 位/5 位编码把“家里库存”的数量回填到库存表 M 列，
+  并逐条打印匹配详情。
+- ⚠️ 将“等待您查看”的收到时间写入 M3 的动作放在**全部匹配与格式化完成之后**再执行。
+"""
+
 import os
 import sys
 import re
@@ -42,7 +51,7 @@ CONFIG = {
         "O": 9.5, "P": 9.8, "Q": 10.08, "R": 9.5, "S": 9.5
     },
     "hidden_columns": ["C"],     # 打开时默认隐藏的列（不影响读写）
-    "left_align_cols": ["T"],    # 需要左对齐的列（列字母形式），例：T列左对齐
+    "left_align_cols": ["T"],    # 需要左对齐的列（列字母），例：T列左对齐
 
     # 5) 表头与合并
     "merge_ranges": [("H3", "J3"), ("U3", "W3")],  # 合并区域
@@ -80,6 +89,7 @@ CONFIG = {
 }
 # =========================================
 
+
 def _read_waiting_time(folder, meta_name, key):
     """读取 mail_meta.json 中的 selected_waiting_received_at（字符串）"""
     meta_path = os.path.join(folder, meta_name)
@@ -94,6 +104,7 @@ def _read_waiting_time(folder, meta_name, key):
         print(f"⚠️ 读取元数据失败: {e}")
     return None
 
+
 def main(cfg: dict):
     # ---------- 路径 ----------
     folder_path = sys.argv[1] if len(sys.argv) >= 2 else cfg["default_folder"]
@@ -106,6 +117,7 @@ def main(cfg: dict):
         print("❌ 未找到包含“总库存”的文件")
         sys.exit(1)
     latest_file = max(files, key=os.path.getmtime)
+    print(f"📄 处理文件：{latest_file}")
 
     # ---------- 打开工作簿 ----------
     wb = load_workbook(latest_file)
@@ -130,15 +142,6 @@ def main(cfg: dict):
     # ---------- 插入列 ----------
     sh.insert_cols(10, cfg["insert_after_J_cols"])  # J 后插入
     sh.insert_cols(3,  cfg["insert_after_B_cols"])  # B 后插入（编号列）
-
-    # ---------- 写入“等待您查看”的收到时间到 M3，并左对齐 ----------
-    waiting_time = _read_waiting_time(folder_path, cfg["meta_filename"], cfg["meta_waiting_key"])
-    if waiting_time:
-        sh["M3"].value = waiting_time
-        sh["M3"].alignment = Alignment(horizontal="left", vertical="center")
-        print(f"🕒 已写入 M3（等待您查看时间）: {waiting_time}")
-    else:
-        print("🕒 没有可写入的等待时间（mail_meta.json 缺失或键为空）")
 
     # ---------- 对齐 ----------
     for c in sh[cfg["center_col_letter"]]:
@@ -172,7 +175,8 @@ def main(cfg: dict):
         header = [c.value for c in s1[1]]
         if cfg["warehouse_col_name"] in header:
             idx = header.index(cfg["warehouse_col_name"])
-            rows = [r for r in s1.iter_rows(min_row=2, values_only=True) if r[idx] == cfg["warehouse_keep_value"]]
+            rows = [r for r in s1.iter_rows(min_row=2, values_only=True)
+                    if r[idx] == cfg["warehouse_keep_value"]]
             s_copy = wb.create_sheet(cfg["copy_sheet_name"])
             s_copy.append(header)
             for r in rows:
@@ -202,7 +206,7 @@ def main(cfg: dict):
                     if c.value is not None:
                         c.number_format = "#,##0.00"
 
-    # ---------- 回填到库存表 M列（打印每条匹配） ----------
+    # ---------- 回填到库存表 M列（逐条打印匹配） ----------
     if cfg["home_sheet_name"] in wb.sheetnames:
         s_home = wb[cfg["home_sheet_name"]]
         tgt_col = cfg["backfill_target_col_index"]  # 13 = M
@@ -214,11 +218,9 @@ def main(cfg: dict):
             if not cval:
                 continue
             s = str(cval)
-            # 后4位映射
             if len(s) >= 4:
-                map4[s[-4:]] = (r, r[0].row)
-            # 5位映射（与原逻辑一致：zfill(5)）
-            map5[s.zfill(5)] = (r, r[0].row)
+                map4[s[-4:]] = (r, r[0].row)      # 后4位映射
+            map5[s.zfill(5)] = (r, r[0].row)       # 5位映射
 
         cnt_4 = cnt_5 = cnt_miss = 0
 
@@ -251,7 +253,6 @@ def main(cfg: dict):
                     print(f"❔ 未匹配(5位)   源行{idx} [{raw} | {name}]")
                     cnt_miss += 1
             else:
-                # 编码不符合两种规则
                 print(f"⏭️ 跳过(格式不符) 源行{idx} [{raw} | {name}]")
                 cnt_miss += 1
 
@@ -289,10 +290,20 @@ def main(cfg: dict):
     wb.active = wb.sheetnames.index(sh.title)
     sh.sheet_view.selection = [Selection(activeCell=cfg["focus_cell"], sqref=cfg["focus_cell"])]
 
+    # ---------- 最后一步：写入“等待您查看”的收到时间到 M3 ----------
+    waiting_time = _read_waiting_time(folder_path, cfg["meta_filename"], cfg["meta_waiting_key"])
+    if waiting_time:
+        sh["M3"].value = waiting_time
+        sh["M3"].alignment = Alignment(horizontal="left", vertical="center")
+        print(f"🕒 已写入 M3（等待您查看时间）: {waiting_time}")
+    else:
+        print("🕒 没有可写入的等待时间（mail_meta.json 缺失或键为空）")
+
     # ---------- 保存 ----------
     wb.save(latest_file)
     wb.close()
     print(f"🎉 已完成处理并保存: {latest_file}")
+
 
 if __name__ == "__main__":
     main(CONFIG)
