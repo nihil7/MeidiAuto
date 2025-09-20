@@ -1,117 +1,133 @@
 import os
 import re
 import pandas as pd
-from openpyxl import load_workbook, Workbook
+from openpyxl import load_workbook
 from openpyxl.chart import LineChart, Reference, Series
 
 # ======================== 配置区域 ========================
-folder_path = r'C:\Users\ishel\Desktop\美的发货\月度汇总'  # 替换为你的文件夹路径
-start_month = 2502  # 起始月份
-end_month = 2507    # 结束月份
+folder_path = r'C:\Users\ishel\Desktop\美的发货\月度汇总'
+start_month = 2502
+end_month = 2508
 output_filename = f'月汇总表{start_month}-{end_month}.xlsx'
+SHEET_NAME_IN = '入库汇总'
+SHEET_NAME_OUT = '出库汇总'
+SRC_SHEET = '库存表'
+COL_CODE = '编号'
+COL_IN = '外仓入库总量'
+COL_OUT = '外仓出库总量'
 # ==========================================================
 
 def extract_month(filename):
-    match = re.search(r'(\d{4})月底', filename)
-    if match:
-        return int(match.group(1))
-    return None
+    m = re.search(r'(\d{4})月底', filename)
+    return int(m.group(1)) if m else None
 
-def read_monthly_data(file_path, month_str):
+def read_monthly_data(file_path, month_str, target_col):
     wb = load_workbook(file_path, data_only=True)
-    if '库存表' not in wb.sheetnames:
-        print(f"⚠️ 文件 {os.path.basename(file_path)} 未找到 '库存表'，跳过")
+    if SRC_SHEET not in wb.sheetnames:
         return None
-
-    ws = wb['库存表']
+    ws = wb[SRC_SHEET]
     headers = [cell.value for cell in ws[4]]
-
-    if '编号' not in headers or '外仓入库总量' not in headers:
-        print(f"⚠️ 文件 {os.path.basename(file_path)} 缺少必要列，跳过")
+    if COL_CODE not in headers or target_col not in headers:
         return None
 
-    idx_code = headers.index('编号') + 1
-    idx_in_qty = headers.index('外仓入库总量') + 1
+    idx_code = headers.index(COL_CODE) + 1
+    idx_val = headers.index(target_col) + 1
 
-    records = []
+    rec = []
     for row in ws.iter_rows(min_row=5, values_only=True):
         code = row[idx_code - 1]
-        in_qty = row[idx_in_qty - 1]
+        val = row[idx_val - 1]
         if code is not None:
-            records.append({'编号': code, f'{month_str}外仓入库总量': in_qty})
+            rec.append({COL_CODE: code, f'{month_str}{target_col}': val})
+    return pd.DataFrame(rec) if rec else None
 
-    return pd.DataFrame(records) if records else None
+def merge_months(dfs):
+    if not dfs:
+        return None
+    out = dfs[0]
+    for d in dfs[1:]:
+        out = pd.merge(out, d, on=COL_CODE, how='outer')
+    out = out.fillna(0)
 
-def create_excel_chart(excel_path):
+    # 增加合计列并按合计降序排序
+    month_cols = [c for c in out.columns if c != COL_CODE]
+    out["合计"] = out[month_cols].sum(axis=1)
+    out = out.sort_values(by="合计", ascending=False)
+    return out
+
+def write_two_sheets_and_save(path, df_in, df_out):
+    with pd.ExcelWriter(path, engine='openpyxl') as writer:
+        if not df_in.empty:
+            df_in.to_excel(writer, index=False, sheet_name=SHEET_NAME_IN)
+        if not df_out.empty:
+            df_out.to_excel(writer, index=False, sheet_name=SHEET_NAME_OUT)
+
+    # 添加自动筛选
+    wb = load_workbook(path)
+    for sheet_name in [SHEET_NAME_IN, SHEET_NAME_OUT]:
+        if sheet_name in wb.sheetnames:
+            ws = wb[sheet_name]
+            max_row, max_col = ws.max_row, ws.max_column
+            ws.auto_filter.ref = f"A1:{chr(64+max_col)}{max_row}"
+    wb.save(path)
+
+def create_excel_chart(excel_path, sheet_name, title):
     wb = load_workbook(excel_path)
-    ws = wb.active
+    ws = wb[sheet_name]
+    max_col, max_row = ws.max_column, ws.max_row
 
-    # 获取列数和行数
-    max_col = ws.max_column
-    max_row = ws.max_row
-
-    # 自动创建折线图
     chart = LineChart()
-    chart.title = "每个编号的月度外仓入库量趋势"
+    chart.title = title
     chart.style = 13
-    chart.y_axis.title = '外仓入库总量'
+    chart.y_axis.title = '数量'
     chart.x_axis.title = '月份'
-
-    # 横轴标签（月份）
-    months = [ws.cell(row=1, column=col).value for col in range(2, max_col + 1)]
     chart.x_axis.number_format = 'General'
     chart.x_axis.majorTickMark = "out"
 
-    # 为每个“编号”添加一条线
-    for row in range(2, max_row + 1):
+    # 去掉“合计”列，不然图表重复统计
+    cats = Reference(ws, min_col=2, max_col=max_col-1, min_row=1)
+    chart.set_categories(cats)
+
+    for r in range(2, max_row + 1):
         series = Series(
-            Reference(ws, min_col=2, max_col=max_col, min_row=row, max_row=row),
-            title=str(ws.cell(row=row, column=1).value)
+            Reference(ws, min_col=2, max_col=max_col-1, min_row=r, max_row=r),
+            title=str(ws.cell(row=r, column=1).value)
         )
         chart.series.append(series)
 
-    # 设置横轴分类标签（月份）
-    cats = Reference(ws, min_col=2, max_col=max_col, min_row=1)
-    chart.set_categories(cats)
-
-    # 插入图表到表中位置（可调整）
     ws.add_chart(chart, f"B{max_row + 3}")
-
     wb.save(excel_path)
-    print(f"✅ 已在 {excel_path} 中插入 Excel 原生折线图")
 
 def main():
-    monthly_dfs = []
-    processed_months = []
+    in_dfs, out_dfs, seen = [], [], set()
 
     for file in os.listdir(folder_path):
-        if file.endswith('.xlsx'):
-            month = extract_month(file)
-            if month and start_month <= month <= end_month:
-                if month in processed_months:
-                    continue
-                processed_months.append(month)
+        if not file.endswith('.xlsx'):
+            continue
+        month = extract_month(file)
+        if not month or not (start_month <= month <= end_month) or month in seen:
+            continue
+        seen.add(month)
+        fp, mstr = os.path.join(folder_path, file), str(month)
+        d_in = read_monthly_data(fp, mstr, COL_IN)
+        if d_in is not None: in_dfs.append(d_in)
+        d_out = read_monthly_data(fp, mstr, COL_OUT)
+        if d_out is not None: out_dfs.append(d_out)
 
-                file_path = os.path.join(folder_path, file)
-                df = read_monthly_data(file_path, str(month))
-                if df is not None:
-                    monthly_dfs.append(df)
-
-    if not monthly_dfs:
-        print("⚠️ 未获取到任何可用数据，未生成汇总文件")
+    if not in_dfs and not out_dfs:
+        print("⚠️ 没有可用数据")
         return
 
-    result_df = monthly_dfs[0]
-    for df in monthly_dfs[1:]:
-        result_df = pd.merge(result_df, df, on='编号', how='outer')
-    result_df = result_df.fillna(0)
-
+    df_in = merge_months(in_dfs) if in_dfs else pd.DataFrame(columns=[COL_CODE])
+    df_out = merge_months(out_dfs) if out_dfs else pd.DataFrame(columns=[COL_CODE])
     output_path = os.path.join(folder_path, output_filename)
-    result_df.to_excel(output_path, index=False)
-    print(f"✅ 已生成汇总文件: {output_path}")
-    print(f"📊 汇总表行数: {len(result_df)}，列数: {len(result_df.columns)}")
 
-    create_excel_chart(output_path)
+    write_two_sheets_and_save(output_path, df_in, df_out)
+
+    if not df_in.empty:
+        create_excel_chart(output_path, SHEET_NAME_IN, "入库趋势")
+    if not df_out.empty:
+        create_excel_chart(output_path, SHEET_NAME_OUT, "出库趋势")
 
 if __name__ == "__main__":
     main()

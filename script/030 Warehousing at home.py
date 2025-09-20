@@ -2,6 +2,7 @@ import os
 import sys
 import re
 import glob
+import json
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Alignment
 from openpyxl.utils import get_column_letter
@@ -11,6 +12,10 @@ from openpyxl.worksheet.views import Selection
 # 🔧 CONFIG｜集中配置（只改这里）
 # -----------------------------------------
 CONFIG = {
+    # 0) 邮件元数据（写入 M3 的时间来源）
+    "meta_filename": "mail_meta.json",                 # data 目录下的 json 文件
+    "meta_waiting_key": "selected_waiting_received_at",# mail_meta.json 中的键
+
     # 1) 路径与目标匹配
     "default_folder": os.path.join(os.getcwd(), "data"),   # 未传参时的默认目录
     "inventory_pattern": "*总库存*.xlsx",                   # 库存文件名匹配模式
@@ -75,6 +80,19 @@ CONFIG = {
 }
 # =========================================
 
+def _read_waiting_time(folder, meta_name, key):
+    """读取 mail_meta.json 中的 selected_waiting_received_at（字符串）"""
+    meta_path = os.path.join(folder, meta_name)
+    try:
+        with open(meta_path, "r", encoding="utf-8") as f:
+            meta = json.load(f)
+        val = meta.get(key)
+        return str(val) if val else None
+    except FileNotFoundError:
+        print(f"ℹ️ 未找到元数据文件: {meta_path}")
+    except Exception as e:
+        print(f"⚠️ 读取元数据失败: {e}")
+    return None
 
 def main(cfg: dict):
     # ---------- 路径 ----------
@@ -111,7 +129,13 @@ def main(cfg: dict):
 
     # ---------- 插入列 ----------
     sh.insert_cols(10, cfg["insert_after_J_cols"])  # J 后插入
-    sh.insert_cols(3, cfg["insert_after_B_cols"])   # B 后插入（编号列）
+    sh.insert_cols(3,  cfg["insert_after_B_cols"])  # B 后插入（编号列）
+
+    # ---------- 写入“等待您查看”的收到时间到 M3，并左对齐 ----------
+    waiting_time = _read_waiting_time(folder_path, cfg["meta_filename"], cfg["meta_waiting_key"])
+    if waiting_time:
+        sh["M3"].value = waiting_time
+        sh["M3"].alignment = Alignment(horizontal="left", vertical="center")
 
     # ---------- 对齐 ----------
     for c in sh[cfg["center_col_letter"]]:
@@ -229,7 +253,6 @@ def main(cfg: dict):
     wb.save(latest_file)
     wb.close()
     print(f"🎉 已完成处理并保存: {latest_file}")
-
 
 if __name__ == "__main__":
     main(CONFIG)
