@@ -13,8 +13,8 @@ from openpyxl.worksheet.views import Selection
 # -----------------------------------------
 CONFIG = {
     # 0) 邮件元数据（写入 M3 的时间来源）
-    "meta_filename": "mail_meta.json",                 # data 目录下的 json 文件
-    "meta_waiting_key": "selected_waiting_received_at",# mail_meta.json 中的键
+    "meta_filename": "mail_meta.json",                  # data 目录下的 json 文件
+    "meta_waiting_key": "selected_waiting_received_at", # mail_meta.json 中的键
 
     # 1) 路径与目标匹配
     "default_folder": os.path.join(os.getcwd(), "data"),   # 未传参时的默认目录
@@ -136,6 +136,9 @@ def main(cfg: dict):
     if waiting_time:
         sh["M3"].value = waiting_time
         sh["M3"].alignment = Alignment(horizontal="left", vertical="center")
+        print(f"🕒 已写入 M3（等待您查看时间）: {waiting_time}")
+    else:
+        print("🕒 没有可写入的等待时间（mail_meta.json 缺失或键为空）")
 
     # ---------- 对齐 ----------
     for c in sh[cfg["center_col_letter"]]:
@@ -199,23 +202,60 @@ def main(cfg: dict):
                     if c.value is not None:
                         c.number_format = "#,##0.00"
 
-    # ---------- 回填到库存表 M列 ----------
+    # ---------- 回填到库存表 M列（打印每条匹配） ----------
     if cfg["home_sheet_name"] in wb.sheetnames:
         s_home = wb[cfg["home_sheet_name"]]
         tgt_col = cfg["backfill_target_col_index"]  # 13 = M
-        # 后4位映射 & 5位映射（从库存表C列读取）
-        map4 = {str(r[2].value)[-4:]: r for r in sh.iter_rows(min_row=2, max_row=last_empty_row - 1, max_col=13) if r[2].value}
-        map5 = {str(r[2].value).zfill(5): r for r in sh.iter_rows(min_row=2, max_row=last_empty_row - 1, max_col=13) if r[2].value}
 
-        for row in s_home.iter_rows(min_row=2, values_only=True):
+        # 构建映射：key -> (该行的 Cell 列表, 行号)
+        map4, map5 = {}, {}
+        for r in sh.iter_rows(min_row=2, max_row=last_empty_row - 1, max_col=tgt_col):
+            cval = r[2].value  # C列（编号）
+            if not cval:
+                continue
+            s = str(cval)
+            # 后4位映射
+            if len(s) >= 4:
+                map4[s[-4:]] = (r, r[0].row)
+            # 5位映射（与原逻辑一致：zfill(5)）
+            map5[s.zfill(5)] = (r, r[0].row)
+
+        cnt_4 = cnt_5 = cnt_miss = 0
+
+        for idx, row in enumerate(s_home.iter_rows(min_row=2, values_only=True), start=2):
             raw = str(row[0]).strip() if row[0] else ""
+            name = row[1]
             qty = row[2]
+
             if re.fullmatch(cfg["regex_4digit_dash"], raw):
                 k = raw[:4]
-                if k in map4: map4[k][tgt_col - 1].value = qty
+                if k in map4:
+                    cells, rownum = map4[k]
+                    c_val = cells[2].value
+                    sh.cell(row=rownum, column=tgt_col).value = qty
+                    print(f"✅ 回填(后4位匹配) 源行{idx} [{raw} | {name}] 数量={qty} → 目标行{rownum} (C={c_val}) → M{rownum}")
+                    cnt_4 += 1
+                else:
+                    print(f"❔ 未匹配(后4位) 源行{idx} [{raw} | {name}]")
+                    cnt_miss += 1
+
             elif re.fullmatch(cfg["regex_5digit"], raw):
                 k = raw.zfill(5)
-                if k in map5: map5[k][tgt_col - 1].value = qty
+                if k in map5:
+                    cells, rownum = map5[k]
+                    c_val = cells[2].value
+                    sh.cell(row=rownum, column=tgt_col).value = qty
+                    print(f"✅ 回填(5位匹配)  源行{idx} [{raw} | {name}] 数量={qty} → 目标行{rownum} (C={c_val}) → M{rownum}")
+                    cnt_5 += 1
+                else:
+                    print(f"❔ 未匹配(5位)   源行{idx} [{raw} | {name}]")
+                    cnt_miss += 1
+            else:
+                # 编码不符合两种规则
+                print(f"⏭️ 跳过(格式不符) 源行{idx} [{raw} | {name}]")
+                cnt_miss += 1
+
+        print(f"📊 回填汇总：后4位匹配 {cnt_4} 条，5位匹配 {cnt_5} 条，未命中/跳过 {cnt_miss} 条。")
 
     # ---------- 会计格式与右对齐（G~Q） ----------
     c1, c2 = cfg["acc_fmt_cols"]

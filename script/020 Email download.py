@@ -32,7 +32,7 @@ import openpyxl
 from bs4 import BeautifulSoup
 from openpyxl.styles import Alignment
 from dotenv import load_dotenv
-from io import StringIO  # ✅ 新增：用于包装 HTML 字符串给 pandas.read_html
+
 
 # ================================
 # 📂 路径配置（支持主程序传参）
@@ -348,128 +348,67 @@ def download_attachments(msg, download_folder: str) -> None:
 # ================================
 # 🧠 解析 HTML 表格并导出 Excel
 # ================================
+# ================================
+# 🧠 解析 HTML 表格（改为仅 BeautifulSoup）
+# ================================
 def parse_html_table(html_content: str) -> list[list[str]]:
-    """
-    解析 HTML 表格为二维列表：
-    1) 优先使用 pandas.read_html（用 StringIO 包装字符串，避免 FutureWarning）
-    2) 失败则回退到 BeautifulSoup，并在单 <td> 时按 <br>/<p> 拆列
-    返回：[[header...], [row1...], [row2...], ...]（全为字符串）
-    """
-    print("🔧 正在解析 HTML 表格...")
+    print("正在解析 HTML 内容中的表格...")
 
-    # ---------- ① pandas 优先 ----------
+    # 可选：保存快照便于排查 GitHub Actions 上的解析结果
     try:
-        tables = pd.read_html(StringIO(html_content))  # ✅ 修正：用 StringIO 包装
+        snap_path = os.path.join(excel_save_path, "last_mail_html.html")
+        with open(snap_path, "w", encoding="utf-8") as f:
+            f.write(html_content)
+        print(f"🔎 HTML 快照: {snap_path}")
     except Exception:
-        tables = []
+        pass
 
-    if tables:
-        def _score(df): return (df.shape[1], df.shape[0])
-        df = max(tables, key=_score).copy()
+    soup = BeautifulSoup(html_content, "html.parser")
+    table = soup.find("table")
+    if not table:
+        print("未找到 HTML 表格！")
+        return []
 
-        def _looks_numeric(s: str) -> bool:
-            # 纯数字/数字格式（含逗号小数点）认为“数字样”
-            return bool(re.fullmatch(r"[0-9\s,.\-]+", (s or "").strip()))
+    data = []
+    rows = table.find_all("tr")
+    header = None
 
-        if isinstance(df.columns, pd.RangeIndex):
-            first_row = df.iloc[0].astype(str).str.strip().tolist()
+    for idx, row in enumerate(rows):
+        cols = [ele.get_text(strip=True) for ele in row.find_all(["td", "th"])]
 
-            # 判定首行是否像表头：出现中文/字母的比例、或包含常见表头关键词
-            non_numeric_ratio = sum(1 for v in first_row if v and not _looks_numeric(v)) / max(len(first_row), 1)
-            header_keywords = ("仓库", "编码", "名称", "规格", "型号", "数量", "金额", "单价", "合计", "备注")
+        if not cols:
+            print(f"第 {idx + 1} 行是空行，跳过")
+            continue
 
-            if (non_numeric_ratio >= 0.4) or any(k in "".join(first_row) for k in header_keywords):
-                header = first_row
-                df = df.iloc[1:].reset_index(drop=True)
-            else:
-                header = [str(c) for c in df.columns]
-        else:
-            if isinstance(df.columns, pd.MultiIndex):
-                header = [
-                    " ".join([str(x) for x in tup if str(x) != "nan"]).strip()
-                    for tup in df.columns.tolist()
-                ]
-            else:
-                header = [str(c) for c in df.columns]
-
-        # ✅ 修正：用 DataFrame.map 替代 applymap，并对旧版 pandas 兜底
-        tmp = df.fillna("").astype(str)
-        try:
-            tmp = tmp.map(str.strip)        # pandas ≥ 2.2
-        except AttributeError:
-            tmp = tmp.applymap(lambda x: x.strip())  # 旧版兼容
-        rows = tmp.values.tolist()
-
-        data = [header] + rows
-
-        # 兜底：若表头是 '0..N-1' 这种索引样式，删掉并用下一行当表头
-        if data and all(h.isdigit() for h in data[0]) and \
-           [int(x) for x in data[0]] == list(range(len(data[0]))) and len(data) >= 2:
-            data = [data[1]] + data[2:]
-
-        print(f"✅ pandas 解析成功：{len(data)} 行，{len(data[0]) if data else 0} 列。")
-        return data
-
-    # ---------- ② BeautifulSoup 回退 ----------
-    def _parse_html_with_bs(html: str) -> list[list[str]]:
-        soup = BeautifulSoup(html, "html.parser")
-        tables = soup.find_all("table")
-        if not tables:
-            print("未找到任何 <table>。")
-            return []
-
-        best_data, best_cols = [], 0
-
-        for table in tables:
-            rows_data = []
-            for tr in table.find_all("tr"):
-                cells = tr.find_all(["td", "th"])
-                if not cells:
-                    continue
-
-                if len(cells) == 1:
-                    # 把单元格里的 <br>/<p> 当作“列分隔”
-                    text = cells[0].get_text(separator="|", strip=True)
-                    cols = [seg.strip() for seg in text.split("|") if seg.strip() != ""]
-                else:
-                    cols = [td.get_text(" ", strip=True) for td in cells]
-
-                rows_data.append(cols)
-
-            if not rows_data:
+        # 首行特判：列数过多当成正文，跳过
+        if header is None:
+            if idx == 0 and len(cols) > 10:
+                print("第一行列数过多，认为其为正文内容，跳过")
                 continue
+            header = cols
+            data.append(header)
+            continue
 
-            n_cols = max((len(r) for r in rows_data), default=0)
-            if n_cols > best_cols or (n_cols == best_cols and len(rows_data) > len(best_data)):
-                normalized, header = [], None
-                for row in rows_data:
-                    if not row:
-                        continue
-                    if len(row) < n_cols:
-                        row = row + [""] * (n_cols - len(row))
-                    elif len(row) > n_cols:
-                        row = row[:n_cols]
-                    if header is None:
-                        header = row
-                        normalized.append(header)
-                    else:
-                        if row == header:
-                            continue
-                        normalized.append(row)
-                best_data, best_cols = normalized, n_cols
+        if len(cols) != len(header):
+            print(f"第 {idx + 1} 行列数与表头不匹配，跳过")
+            continue
+        if cols == header:
+            print(f"第 {idx + 1} 行是重复表头，跳过")
+            continue
 
-        # 同样的兜底：去掉 '0..N-1' 伪表头
-        if best_data and all(h.isdigit() for h in best_data[0]) and \
-           [int(x) for x in best_data[0]] == list(range(len(best_data[0]))) and len(best_data) >= 2:
-            best_data = [best_data[1]] + best_data[2:]
+        data.append(cols)
 
-        if best_data:
-            print(f"✅ BeautifulSoup 回退解析成功：{len(best_data)} 行，{best_cols} 列。")
-        else:
-            print("未能解析出表格数据。")
-        return best_data
+    print(f"成功提取 {len(data)} 行表格数据。")
 
-    return _parse_html_with_bs(html_content)
+    # 保留前导零：纯数字以字符串写入
+    for i in range(len(data)):
+        for j in range(len(data[i])):
+            if isinstance(data[i][j], str) and data[i][j].isdigit():
+                data[i][j] = str(data[i][j])
+
+    return data
+
+
 
 def save_to_excel(data: list[list[str]], save_dir: str, file_prefix="存量查询") -> None:
     if not data:

@@ -4,7 +4,7 @@ import os
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # 要删除的文件名中包含的关键字
-keywords = ["总库存", "美的仓储自动化", "合肥市","存量查询","output.html","mail_meta"]
+keywords = ["总库存", "美的仓储自动化", "合肥市","存量查询","output.html","mail_meta","last_mail_html"]
 
 # 遍历目录及其子目录中的所有文件
 for root, dirs, files in os.walk(script_dir):
