@@ -86,10 +86,36 @@ def find_colored_rows(sheet):
 
 
 # ================================
-# 📅 获取日期
+# 📅 获取日期（H3 与 M3）
 # ================================
-def get_date(sheet):
-    return sheet["H3"].value
+def _fmt_dt(v):
+    """把单元格时间或字符串格式化为 'YYYY-MM-DD HH:MM:SS'；无法解析就原样返回/空串。"""
+    if isinstance(v, datetime):
+        return v.strftime("%Y-%m-%d %H:%M:%S")
+    if isinstance(v, str):
+        s = v.strip()
+        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y/%m/%d %H:%M:%S", "%Y-%m-%d", "%Y/%m/%d"):
+            try:
+                return datetime.strptime(s, fmt).strftime("%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                pass
+        try:
+            # ISO8601 兜底，如 2025-09-19T18:00:05 或带Z
+            return datetime.fromisoformat(s.replace("Z", "+00:00")).strftime("%Y-%m-%d %H:%M:%S")
+        except Exception:
+            return s
+    return ""
+
+
+def get_dates(sheet):
+    """
+    返回 (date, date2)
+    - date  来自 H3（原标题用）
+    - date2 来自 M3（家里库存数据用）
+    """
+    date = _fmt_dt(sheet["H3"].value)
+    date2 = _fmt_dt(sheet["M3"].value)
+    return date, date2
 
 
 # ================================
@@ -145,7 +171,7 @@ def prepare_summary_text(sheet, last_empty_row):
 # ================================
 # 构建输出文本
 # ================================
-def construct_html_content(sheet, colored_rows, date,
+def construct_html_content(sheet, colored_rows, date, date2,
                            stock_total, monthly_plan, plan_gap_output,
                            monthly_sent, monthly_received, monthly_remaining):
     html = """
@@ -163,8 +189,10 @@ def construct_html_content(sheet, colored_rows, date,
     <body>
     """
 
+    # 两个标题：H3 对应重庆俊都仓储，M3 对应家里库存
     html += f"""
     <h1>{date} 重庆俊都仓储数据</h1>
+    <h1>{date2} 家里库存数据</h1>
     <h5>“外仓库存＜50%外仓应存数量”的物料有 <strong>{len(colored_rows)}</strong> 款</h5>
     """
 
@@ -242,14 +270,14 @@ def main():
     sheet = load_worksheet(inventory_file)
 
     colored_rows = find_colored_rows(sheet)
-    date = get_date(sheet)
+    date, date2 = get_dates(sheet)  # 👈 同时拿 H3 / M3
     last_empty_row = find_last_empty_row(sheet)
     print(f"⚡ 发现 B 列第一个空单元格所在行: {last_empty_row}")
 
     stock_total, monthly_plan, plan_gap_output, monthly_sent, monthly_received, monthly_remaining = prepare_summary_text(sheet, last_empty_row)
 
     html_content = construct_html_content(
-        sheet, colored_rows, date,
+        sheet, colored_rows, date, date2,
         stock_total, monthly_plan, plan_gap_output,
         monthly_sent, monthly_received, monthly_remaining
     )
