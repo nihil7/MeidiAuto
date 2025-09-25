@@ -1,90 +1,135 @@
+# -*- coding: utf-8 -*-
+"""
+021 Merge excel.py
+- 以【最新的】文件名包含“合肥市”的 Excel 作为基底
+- 排除其它所有“合肥市”旧文件，避免覆盖
+- 输出文件名后缀使用北京时间（UTC+8）
+"""
 import os
 import sys
 import shutil
+import platform
 from datetime import datetime
 from openpyxl import load_workbook
-import platform
+from zoneinfo import ZoneInfo   # Python 3.9+ 内置时区库
 
 # ================================
-# 📂 路径配置（支持主程序传参）
+# ⚙️ 配置区
 # ================================
-# 设定默认路径（根据操作系统调整路径）
+KEYWORD_BASE = "合肥市"
+EXT = ".xlsx"
+SORT_OTHERS_BY_MTIME_ASC = True
+PRINT_PREFIX = "✅"
+
+# ================================
+# 📂 路径获取
+# ================================
 if platform.system() == "Windows":
-    default_folder_path = os.path.join(os.getcwd(), "data")  # 本地 Windows 用相对路径
+    default_folder_path = os.path.join(os.getcwd(), "data")
 else:
-    default_folder_path = os.path.join(os.getcwd(), "data")  # GitHub 使用相对路径
+    default_folder_path = os.path.join(os.getcwd(), "data")
 
-# 获取路径（本地或传参）
 if len(sys.argv) >= 2:
-    folder_path = os.path.join(sys.argv[1])  # 传入路径
-    print(f"✅ 使用传入路径: {folder_path}")
+    folder_path = os.path.join(sys.argv[1])
+    print(f"{PRINT_PREFIX} 使用传入路径: {folder_path}")
 else:
-    folder_path = default_folder_path  # 本地默认路径
+    folder_path = default_folder_path
     print(f"⚠️ 未传入路径，使用默认路径: {folder_path}")
 
-# 确保路径存在
 if not os.path.exists(folder_path):
-    print(f"❌ 文件夹路径不存在: {folder_path}")
+    print(f"❌ 文件夹不存在: {folder_path}")
     sys.exit(1)
 
-# === 查找目录下所有Excel文件，找到第一个包含"合肥市"的文件 ===
-excel_files = [f for f in os.listdir(folder_path) if f.endswith('.xlsx') and "合肥市" in f]
-print(f"✅ 在目录 {folder_path} 中找到 {len(excel_files)} 个 文件名包含 '合肥市' 的 Excel 文件：")
-for idx, file in enumerate(excel_files, 1):
-    print(f"{idx}. {file}")
+# 有效文件过滤
+def is_valid_xlsx(name: str) -> bool:
+    return (
+        name.endswith(EXT)
+        and not os.path.basename(name).startswith("~$")
+        and os.path.isfile(os.path.join(folder_path, name))
+    )
 
-# 如果没有找到文件，提示并退出
-if len(excel_files) == 0:
-    print("⚠️ 没有找到文件名包含'合肥市'的Excel文件！")
-    exit()
+all_excels = [f for f in os.listdir(folder_path) if is_valid_xlsx(f)]
+if not all_excels:
+    print("⚠️ 目录下没有可用的 .xlsx 文件")
+    sys.exit(0)
 
-# === 打开第一个含有"合肥市"的文件 ===
-file_with_hefei = os.path.join(folder_path, excel_files[0])
-print(f"\n✅ 打开文件：{file_with_hefei}")
-hefei_wb = load_workbook(file_with_hefei)
+# ================================
+# 🔎 找最新的“合肥市”文件
+# ================================
+hefei_candidates = [f for f in all_excels if KEYWORD_BASE in f]
+print(f"{PRINT_PREFIX} 找到 {len(hefei_candidates)} 个文件名包含 '{KEYWORD_BASE}':")
+for i, f in enumerate(hefei_candidates, 1):
+    print(f"{i}. {f}")
 
-# === 查找文件夹中其他所有的Excel文件（排除第一个文件） ===
-other_excel_files = [f for f in os.listdir(folder_path) if f.endswith('.xlsx') and f != excel_files[0]]
-print(f"✅ 找到 {len(other_excel_files)} 个需要合并的文件：")
-for idx, file in enumerate(other_excel_files, 1):
-    print(f"{idx}. {file}")
+if not hefei_candidates:
+    print(f"❌ 未找到包含“{KEYWORD_BASE}”的基底文件")
+    sys.exit(1)
 
-# 如果没有其他文件，提示并退出
-if len(other_excel_files) == 0:
-    print("⚠️ 文件夹中没有其他 Excel 文件可以合并！")
-    exit()
+hefei_candidates = sorted(
+    hefei_candidates,
+    key=lambda f: os.path.getmtime(os.path.join(folder_path, f)),
+    reverse=True
+)
+base_file = hefei_candidates[0]
+base_path = os.path.join(folder_path, base_file)
+print(f"\n{PRINT_PREFIX} 基底文件（最新）: {base_file}")
 
-# === 创建新的合并文件 ===
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+# ================================
+# 🧺 其它待合并文件
+# ================================
+other_excel_files = [f for f in all_excels if f not in hefei_candidates]
+if SORT_OTHERS_BY_MTIME_ASC:
+    other_excel_files = sorted(other_excel_files, key=lambda f: os.path.getmtime(os.path.join(folder_path, f)))
+else:
+    other_excel_files = sorted(other_excel_files, key=lambda f: os.path.getmtime(os.path.join(folder_path, f)), reverse=True)
+
+print(f"{PRINT_PREFIX} 待合并文件数: {len(other_excel_files)}")
+for i, f in enumerate(other_excel_files, 1):
+    print(f"{i}. {f}")
+
+# ================================
+# 🆕 创建合并文件（文件名用北京时间）
+# ================================
+beijing_now = datetime.now(ZoneInfo("Asia/Shanghai"))
+timestamp = beijing_now.strftime("%Y%m%d_%H%M%S")
 merged_filename = f"总库存{timestamp}.xlsx"
 merged_filepath = os.path.join(folder_path, merged_filename)
 
-# 复制“合肥市”文件到新文件
-shutil.copy(file_with_hefei, merged_filepath)
-print(f"\n✅ 创建了新的合并文件：{merged_filename}")
+shutil.copy(base_path, merged_filepath)
+print(f"\n{PRINT_PREFIX} 创建合并文件: {merged_filename}")
 
-# === 打开合并文件 ===
+# ================================
+# 📑 合并逻辑
+# ================================
+def copy_sheet_values(src_wb, dst_wb, sheet_name: str):
+    src = src_wb[sheet_name]
+    if sheet_name in dst_wb.sheetnames:
+        del dst_wb[sheet_name]
+    dst = dst_wb.create_sheet(sheet_name)
+    for row in src.iter_rows(values_only=True):
+        dst.append(list(row))
+
 merged_wb = load_workbook(merged_filepath)
 
-# === 遍历所有需要合并的文件并复制工作表 ===
 for file in other_excel_files:
     file_path = os.path.join(folder_path, file)
-    wb = load_workbook(file_path)
+    try:
+        wb = load_workbook(file_path, data_only=True, read_only=False)
+    except Exception as e:
+        print(f"⚠️ 跳过无法打开的文件: {file}，原因：{e}")
+        continue
 
-    # 复制每个工作表到合并文件
     for sheet_name in wb.sheetnames:
-        sheet_from = wb[sheet_name]
-        if sheet_name in merged_wb.sheetnames:
-            merged_wb.remove(merged_wb[sheet_name])
-            print(f"ℹ️ 已删除旧的工作表：{sheet_name}")
+        copy_sheet_values(wb, merged_wb, sheet_name)
+        print(f"{PRINT_PREFIX} 复制工作表: {sheet_name} ← {file}")
+    wb.close()
 
-        sheet_to = merged_wb.create_sheet(sheet_name)
-        for row in sheet_from.iter_rows():
-            row_values = [cell.value for cell in row]
-            sheet_to.append(row_values)
-        print(f"✅ 已复制工作表 '{sheet_name}'")
+if "Sheet" in merged_wb.sheetnames and len(merged_wb["Sheet"]["A"]) == 0:
+    try:
+        del merged_wb["Sheet"]
+    except Exception:
+        pass
 
-# === 保存合并后的文件 ===
 merged_wb.save(merged_filepath)
 merged_wb.close()
-print(f"✅ 合并完成，文件已保存：{merged_filepath}")
+print(f"{PRINT_PREFIX} 合并完成，输出: {merged_filepath}")
