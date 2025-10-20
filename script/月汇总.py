@@ -7,7 +7,7 @@ from openpyxl.chart import LineChart, Reference, Series
 # ======================== 配置区域 ========================
 folder_path = r'C:\Users\ishel\Desktop\美的发货\月度汇总'
 start_month = 2502
-end_month = 2508
+end_month = 2509
 output_filename = f'月汇总表{start_month}-{end_month}.xlsx'
 SHEET_NAME_IN = '入库汇总'
 SHEET_NAME_OUT = '出库汇总'
