@@ -70,8 +70,34 @@ def process_inventory_data(sheet):
     purple_row_fill = PatternFill(start_color="CCC0DA", end_color="CCC0DA", fill_type="solid")  # 淡紫
     red_row_fill = PatternFill(start_color="E6B8B7", end_color="E6B8B7", fill_type="solid")      # 淡红
 
+    # ✅ C列跳过名单
+    skip_codes = {"00514", "04928"}
+
+    def norm_code(v):
+        """把 C 列值统一成 5 位数字字符串，兼容 '00514' / '514' / 514 / 514.0 等情况"""
+        if v is None:
+            return ""
+        s = str(v).strip()
+        # 处理 514.0 这种
+        try:
+            if isinstance(v, (int, float)) or (s.replace(".", "", 1).isdigit() and "." in s):
+                s = str(int(float(v)))
+        except Exception:
+            pass
+        # 只对纯数字做补零
+        if s.isdigit():
+            s = s.zfill(5)
+        return s
+
     # 遍历所有行（跳过表头）
     for row in sheet.iter_rows(min_row=2, max_col=12, values_only=False):
+
+        # ✅ 如果 C 列是 00514 / 04928，则整行不参与着色
+        c_val = norm_code(row[2].value)  # C列（索引2）
+        if c_val in skip_codes:
+            # print(f"行 {row[0].row} 跳过着色（C列={c_val}）")
+            continue
+
         column_10 = row[9]   # 第10列（索引9）
         column_12 = row[11]  # 第12列（索引11）
 
@@ -92,9 +118,8 @@ def process_inventory_data(sheet):
                 print(f"行 {row[0].row} → 紫色: n={n}, m={m}")
                 column_12.fill = purple_fill
 
-                # 给当前行除第12列以外、有值的单元格染淡紫色
                 for i, cell in enumerate(row):
-                    if i != 11 and cell.value is not None:  # 排除第12列，避免覆盖
+                    if i != 11 and cell.value is not None:
                         cell.fill = purple_row_fill
 
             # 情况 2：填绿色（不扩展同行填色）
@@ -110,7 +135,6 @@ def process_inventory_data(sheet):
                 for i, cell in enumerate(row):
                     if i != 11 and cell.value is not None:
                         cell.fill = red_row_fill
-
 
 
 # ================================
