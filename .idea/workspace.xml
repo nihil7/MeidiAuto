@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="8f0b6721-c018-412c-ad77-c58279931e3c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/script/data/list.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/script/data/list.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/script/月汇总.py" beforeDir="false" afterPath="$PROJECT_DIR$/script/月汇总.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -94,7 +93,7 @@
       <recent name="C:\Users\ishel\Desktop\编程总库\MeidiAuto\script\data" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.010 clean">
+  <component name="RunManager" selected="Python.月汇总">
     <configuration name="月汇总" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="MeidiAuto" />
       <option name="ENV_FILES" value="" />
