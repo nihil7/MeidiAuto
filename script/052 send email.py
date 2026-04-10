@@ -50,7 +50,6 @@ else:
     print("❌ 没有找到符合条件的Excel文件！")
     exit()
 
-
 # ================================
 # 查找最新的 HTML 文件
 # ================================
@@ -71,7 +70,6 @@ else:
 # 读取 HTML 内容
 print(f"✅ 已成功读取 HTML 文件内容")
 
-
 # ================================
 # 邮件配置
 # ================================
@@ -89,13 +87,12 @@ if not email_user or not email_password:
 print("📬 正在使用邮箱:", email_user)
 
 # 多个收件人的邮箱，使用逗号分隔
-to_email_list = [ 'ishell@aliyun.com','ishell168@qq.com','zhou345616422@163.com'] #,'1421281576@qq.com'
+to_email_list = ['1421281576@qq.com','zhou345616422@163.com','1130108075@qq.com']
 
 # 将收件人邮箱列表转换为逗号分隔的字符串git remote set-url origin git@github.com:nihil7/
 to_email = ', '.join(to_email_list)
 
 subject = f"物料情况和Excel文件 - {os.path.basename(latest_image) if latest_image else '无图片  '}"
-
 
 body = f"""
 <html>
@@ -105,7 +102,7 @@ body = f"""
         <p>{html_content}</p>  <!-- 在这里插入生成的 HTML 内容 -->
 
         <p>祝您工作顺利！</p>
-        
+
         <p>附件：<br>
         图片文件: {os.path.basename(latest_image) if latest_image else '无图片'}<br>
         Excel文件: {os.path.basename(latest_excel)}</p>
