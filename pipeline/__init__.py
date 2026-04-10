@@ -1,2 +1,0 @@
-"""MeidiAuto pipeline package."""
-

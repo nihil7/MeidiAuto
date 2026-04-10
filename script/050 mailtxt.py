@@ -1,36 +1,22 @@
-# ================================================
-# STEP CARD
-# 功能: 生成邮件正文 HTML（异常信息与摘要）。
-# 输入: 总库存*.xlsx
-# 输出: output.html
-# 上游: 042 Color display.py
-# 下游: 051 Send an email.py
-# ================================================
-
 import os
 import sys
+import glob
 import openpyxl
 from datetime import datetime
 import re
-from pathlib import Path
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from pipeline.io_utils import ensure_existing_dir, find_required_excel, resolve_data_dir
 
 
 # ================================
 # 📂 配置文件路径
 # ================================
 def get_inventory_folder():
-    inventory_folder = str(resolve_data_dir(sys.argv[1] if len(sys.argv) >= 2 else None))
-    print(f"✅ 使用传入路径: {inventory_folder}" if len(sys.argv) >= 2 else f"⚠️ 未传入路径，使用默认路径: {inventory_folder}")
-    try:
-        ensure_existing_dir(Path(inventory_folder), "库存目录")
-    except FileNotFoundError as exc:
-        print(f"❌ {exc}")
+    default_inventory_folder = os.path.abspath(os.path.join(os.getcwd(), "data"))
+    inventory_folder = sys.argv[1] if len(sys.argv) >= 2 else default_inventory_folder
+    print(f"✅ 使用传入路径: {inventory_folder}" if len(
+        sys.argv) >= 2 else f"⚠️ 未传入路径，使用默认路径: {inventory_folder}")
+
+    if not os.path.exists(inventory_folder):
+        print(f"❌ 文件夹路径不存在: {inventory_folder}")
         sys.exit(1)
 
     print(f"📂 当前工作文件夹: {inventory_folder}")
@@ -41,16 +27,15 @@ def get_inventory_folder():
 # 1. 查找 Excel 文件
 # ================================
 def find_excel_file(inventory_folder):
-    try:
-        excel = find_required_excel(Path(inventory_folder), "总库存*.xlsx")
-    except FileNotFoundError as exc:
-        print(f"❌ {exc}")
+    files = glob.glob(os.path.join(inventory_folder, '总库存*.xlsx'))
+    valid_files = [f for f in files if not os.path.basename(f).startswith('~$')]
+
+    if not valid_files:
+        print("❌ 没有找到符合条件的文件！")
         sys.exit(1)
-    if os.path.basename(excel).startswith("~$"):
-        print("❌ 找到的是临时锁文件，请关闭正在编辑的 Excel 后重试。")
-        sys.exit(1)
-    print(f"✅ 找到文件：{excel}")
-    return excel
+
+    print(f"✅ 找到文件：{valid_files[0]}")
+    return valid_files[0]
 
 
 # ================================
@@ -279,9 +264,7 @@ def save_output_to_file(html_content, output_dir):
 # ================================
 # 主函数
 # ================================
-def main(argv: list[str] | None = None) -> int:
-    if argv is not None:
-        sys.argv = argv
+def main():
     inventory_folder = get_inventory_folder()
     inventory_file = find_excel_file(inventory_folder)
     sheet = load_worksheet(inventory_file)
@@ -303,8 +286,7 @@ def main(argv: list[str] | None = None) -> int:
     save_output_to_file(html_content, inventory_folder)
     print("✅ 红色或紫色单元格数量：", len(colored_rows))
     print("📌 行号列表：", colored_rows)
-    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

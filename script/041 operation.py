@@ -1,39 +1,32 @@
-# ================================================
-# STEP CARD
-# 功能: 计算最小发货/排产/月计划缺口并写合计。
-# 输入: 总库存*.xlsx
-# 输出: 更新后的总库存*.xlsx
-# 上游: 033 list insertion.py
-# 下游: 042/050
-# ================================================
-
+import os
 import sys
+import glob
 import openpyxl
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
-from pathlib import Path
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from pipeline.io_utils import ensure_existing_dir, find_required_excel, resolve_data_dir
 
 # ================================
 # 📂 文件路径配置
 # ================================
-inventory_folder = str(resolve_data_dir(sys.argv[1] if len(sys.argv) >= 2 else None))
+default_inventory_folder = os.path.abspath(os.path.join(os.getcwd(), "data"))
+inventory_folder = sys.argv[1] if len(sys.argv) >= 2 else default_inventory_folder
 print(f"📂 使用路径: {inventory_folder}")
+
+if not os.path.exists(inventory_folder):
+    print(f"❌ 路径不存在: {inventory_folder}")
+    sys.exit(1)
 
 # ================================
 # 1. 查找文件
 # ================================
-try:
-    ensure_existing_dir(Path(inventory_folder), "库存目录")
-    inventory_file = find_required_excel(Path(inventory_folder), "总库存*.xlsx")
-except FileNotFoundError as exc:
-    print(f"❌ {exc}")
+pattern = os.path.join(inventory_folder, '总库存*.xlsx')
+valid_files = [f for f in glob.glob(pattern) if not os.path.basename(f).startswith('~$')]
+
+if not valid_files:
+    print("❌ 没有找到符合条件的文件！")
     sys.exit(1)
+
+inventory_file = valid_files[0]
 print(f"✅ 发现库存文件: {inventory_file}")
 
 try:

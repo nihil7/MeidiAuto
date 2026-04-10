@@ -4,5 +4,3 @@ pandas
 openpyxl
 lxml
 html5lib
-numpy
-matplotlib
