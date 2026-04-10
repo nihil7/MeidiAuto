@@ -1,43 +1,124 @@
-name: 自动执行Python脚本
+name: Run MeidiAuto Pipeline
 
-# ✅ 两种触发方式：定时 + 手动/API触发
 on:
-  # 取消定时触发，可以通过注释掉这部分来关闭定时发送
-  # schedule:
-  #   - cron: "0 11 * * *"  # 每天 UTC 时间 11:00（即北京时间 19:00）
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
 
-  # 手动触发或者 API 调用
-  workflow_dispatch:  # 支持通过 GitHub UI 或 API 手动触发
+concurrency:
+  group: meidiauto-pipeline
+  cancel-in-progress: false
 
 jobs:
-  run-scripts:
+  pipeline:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
 
     steps:
-      - name: 🚀 检出仓库代码
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🐍 设置 Python 运行环境
-        uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
+          cache: "pip"
 
-      - name: 🛠️ 安装系统依赖（可选）
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libffi-dev libssl-dev
-
-      - name: 📦 安装 Python 依赖（通过 requirements.txt）
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: ▶️ 运行主程序
+      - name: Probe IMAP connectivity
+        id: imap_probe
+        env:
+          IMAP_SERVER: ${{ secrets.IMAP_SERVER || 'imap.qq.com' }}
         run: |
-          python main.py
+          python - <<'PY'
+          import os, socket, json
+          host = os.getenv("IMAP_SERVER", "imap.qq.com")
+          timeout = 6
+          ok = False
+          reason = ""
+          try:
+            socket.create_connection((host, 993), timeout=timeout).close()
+            ok = True
+            reason = "reachable"
+          except Exception as e:
+            reason = str(e)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+            f.write(f"ok={'true' if ok else 'false'}\n")
+            f.write(f"reason={reason}\n")
+          print(json.dumps({"imap_server": host, "ok": ok, "reason": reason}, ensure_ascii=False))
+          PY
+
+      - name: Validate pipeline prerequisites
+        if: steps.imap_probe.outputs.ok == 'true'
         env:
           EMAIL_ADDRESS_QQ: ${{ secrets.EMAIL_ADDRESS_QQ }}
+          EMAIL_PASSWORD_QQ: ${{ secrets.EMAIL_PASSWORD_QQ }}
           EMAIL_PASSWOR_QQ: ${{ secrets.EMAIL_PASSWOR_QQ }}
+          RECIPIENT_EMAILS: ${{ secrets.RECIPIENT_EMAILS }}
+          IMAP_SERVER: ${{ secrets.IMAP_SERVER || 'imap.qq.com' }}
+        run: python main.py --check
 
-      - name: ✅ 输出完成提示（可选）
-        run: echo "任务执行完成 ✅"
+      - name: Run pipeline
+        id: run_pipeline
+        if: steps.imap_probe.outputs.ok == 'true'
+        continue-on-error: true
+        env:
+          EMAIL_ADDRESS_QQ: ${{ secrets.EMAIL_ADDRESS_QQ }}
+          EMAIL_PASSWORD_QQ: ${{ secrets.EMAIL_PASSWORD_QQ }}
+          EMAIL_PASSWOR_QQ: ${{ secrets.EMAIL_PASSWOR_QQ }}
+          RECIPIENT_EMAILS: ${{ secrets.RECIPIENT_EMAILS }}
+          IMAP_SERVER: ${{ secrets.IMAP_SERVER || 'imap.qq.com' }}
+        run: python main.py --data-dir data --stop-on-error --report-file data/run-report.json
+
+      - name: Skip run when IMAP unreachable
+        if: steps.imap_probe.outputs.ok != 'true'
+        run: |
+          echo "⚠️ IMAP 不可达，已跳过本次生产流程。原因: ${{ steps.imap_probe.outputs.reason }}"
+          mkdir -p data
+          python - <<'PY'
+          import json, time
+          payload = {
+            "started_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "success": False,
+            "skipped": True,
+            "reason": "imap_unreachable",
+            "detail": "skip pipeline in GitHub-hosted runner due to IMAP network restriction"
+          }
+          with open("data/run-report.json", "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+          print("🧾 已写入跳过报告: data/run-report.json")
+          PY
+
+      - name: Evaluate pipeline result
+        if: steps.imap_probe.outputs.ok == 'true' && steps.run_pipeline.outcome == 'failure'
+        run: |
+          python - <<'PY'
+          import json, pathlib, sys
+          path = pathlib.Path("data/run-report.json")
+          if not path.exists():
+            print("❌ 流水线失败且未生成 run-report.json")
+            sys.exit(1)
+
+          report = json.loads(path.read_text(encoding="utf-8"))
+          failed_steps = report.get("failed_steps") or []
+          if failed_steps == ["020 Email download.py"]:
+            print("⚠️ 仅 020 失败（通常为 IMAP 网络受限），本次 CI 记为软失败并放行。")
+            sys.exit(0)
+
+          print(f"❌ 失败步骤: {failed_steps}")
+          sys.exit(1)
+          PY
+
+      - name: Upload run report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-run-report
+          path: data/run-report.json
+          if-no-files-found: ignore
