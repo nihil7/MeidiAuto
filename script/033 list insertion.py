@@ -1,8 +1,24 @@
+# ================================================
+# STEP CARD
+# 功能: 按需求表回填 K/N/P/T 列并统一样式。
+# 输入: script/data/list.xlsx, 总库存*.xlsx
+# 输出: 更新后的总库存*.xlsx
+# 上游: 032 Warehousing at out.py
+# 下游: 041/042/050
+# ================================================
+
 import os
 import re
 import sys
 import openpyxl
 from openpyxl.styles import Font, Alignment, Border, Side
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from pipeline.io_utils import resolve_data_dir, find_first_excel
 
 # =======================
 # 配置区（按需改这里）
@@ -24,7 +40,7 @@ FONT7_ROWS = (4, 54)          # 行 4~54（含端点）
 # =======================
 # 路径与文件
 # =======================
-inv_dir = sys.argv[1] if len(sys.argv) >= 2 else DEFAULT_INV_DIR
+inv_dir = str(resolve_data_dir(sys.argv[1] if len(sys.argv) >= 2 else None, "data"))
 if not os.path.exists(inv_dir):
     print(f"❌ 库存目录不存在: {inv_dir}"); sys.exit(1)
 
@@ -32,10 +48,7 @@ demand_file = os.path.join(DATA_DIR, DEMAND_XLSX)
 if not os.path.exists(demand_file):
     print(f"❌ 需求文件不存在: {demand_file}"); sys.exit(1)
 
-inventory_file = None
-for f in os.listdir(inv_dir):
-    if f.endswith(".xlsx") and "总库存" in f:
-        inventory_file = os.path.join(inv_dir, f); break
+inventory_file = find_first_excel(Path(inv_dir), "*总库存*.xlsx")
 if not inventory_file:
     print("❌ 未找到包含“总库存”的文件"); sys.exit(1)
 
