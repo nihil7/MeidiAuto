@@ -1,4 +1,14 @@
 # -*- coding: utf-8 -*-
+
+# ================================================
+# STEP CARD
+# 功能: 连接 IMAP 下载邮件与附件，生成邮件元数据。
+# 输入: EMAIL_* 环境变量, IMAP_SERVER
+# 输出: mail_meta.json, 存量查询*.xlsx
+# 上游: 主流程入口
+# 下游: 021 Merge excel.py
+# ================================================
+
 """
 020 Email download.py  (北京时间版)
 - 统一所有时间为 Asia/Shanghai（UTC+8）
@@ -26,6 +36,25 @@ from dotenv import load_dotenv
 # 🕒 时区工具（统一北京时间）
 # ================================
 TZ_SH = ZoneInfo("Asia/Shanghai")
+
+
+def mask_email(value: str | None) -> str:
+    if not value:
+        return "(empty)"
+    if "@" not in value:
+        return value[:2] + "***"
+    name, domain = value.split("@", 1)
+    if len(name) <= 2:
+        name_masked = name[0] + "*"
+    else:
+        name_masked = name[:2] + "***"
+    return f"{name_masked}@{domain}"
+
+
+def mask_secret(value: str | None) -> str:
+    if not value:
+        return "(empty)"
+    return f"***len={len(value)}"
 
 def now_shanghai() -> datetime:
     return datetime.now(TZ_SH)
@@ -67,7 +96,11 @@ email_server = os.getenv("IMAP_SERVER", "imap.qq.com")
 if not email_user or not email_password:
     raise ValueError("❌ 环境变量未正确配置（EMAIL_ADDRESS_QQ / EMAIL_PASSWORD_QQ）！")
 
-print("📬 正在使用邮箱:", email_user)
+print("📬 环境变量检查：")
+print("   EMAIL_ADDRESS_QQ =", mask_email(email_user))
+print("   EMAIL_PASSWORD_QQ/EMAIL_PASSWOR_QQ =", mask_secret(email_password))
+print("   IMAP_SERVER =", email_server)
+print("📬 正在使用邮箱:", mask_email(email_user))
 
 # ================================
 # 🔑 标题解码与清理
@@ -450,3 +483,4 @@ if __name__ == '__main__':
             print("表格为空，未导出 Excel。")
     else:
         print("未获取到 HTML，程序结束。")
+        raise SystemExit(1)
