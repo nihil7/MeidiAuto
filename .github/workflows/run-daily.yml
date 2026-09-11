@@ -2,8 +2,6 @@ name: Run MeidiAuto Pipeline
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * *"
 
 concurrency:
   group: meidiauto-pipeline
