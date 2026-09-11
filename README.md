@@ -12,7 +12,7 @@
   - `pipeline/io_utils.py`：脚本共享的路径与文件发现工具。
   - `pipeline/flow_map.py`：业务阶段与常见需求修改导航。
 - `script/`：业务脚本（下载邮件、合并 Excel、计算与着色、生成 HTML、发送邮件）。
-- `.github/workflows/run-daily.yml`：标准化 CI 运行工作流（支持手动+定时）。
+- `.github/workflows/run-daily.yml`：标准化 CI 运行工作流（由 `gmail-watcher` 触发，也支持手动运行）。
 - `requirements.txt`：Python 依赖。
 - `docs/PIPELINE_FLOW.md`：主流程一页图（Mermaid）+ 阅读顺序。
 - `docs/AI_FRIENDLY_REDESIGN.md`：AI 友好型重构说明（主线、边界、改动导航）。
@@ -156,10 +156,9 @@ python main.py --data-dir data-docker --stop-on-error --clean-after-run --report
 
 ### GitHub Actions 自动运行
 
-仓库已提供 `.github/workflows/run-daily.yml`，支持两种触发方式：
+仓库已提供 `.github/workflows/run-daily.yml`，支持以下触发方式：
 
-- `workflow_dispatch`：在 Actions 页面手动点击运行；
-- `schedule`：按 cron 自动定时运行（当前配置是每天 UTC 00:00，即北京时间早上 08:00）。
+- `workflow_dispatch`：由 `gmail-watcher` 在收到匹配邮件后触发，也可以在 Actions 页面手动点击运行。
 
 首次启用前，请在仓库 `Settings -> Secrets and variables -> Actions` 中配置：
 
